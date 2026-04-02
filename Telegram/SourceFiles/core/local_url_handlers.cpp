@@ -24,6 +24,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/boxes/confirm_box.h"
 #include "ui/boxes/edit_birthday_box.h"
 #include "ui/integration.h"
+#include "yukigram/lang.h"
 #include "payments/payments_non_panel_process.h"
 #include "boxes/peers/edit_peer_info_box.h"
 #include "boxes/share_box.h"
@@ -1719,6 +1720,28 @@ bool ResolveOAuth(
 	return true;
 }
 
+bool ShowNya(
+		Window::SessionController *controller,
+		const Match &match,
+		const QVariant &context) {
+	if (!controller) {
+		return false;
+	}
+	controller->showToast(ktr("nya"));
+	return true;
+}
+
+bool ShowWoof(
+		Window::SessionController *controller,
+		const Match &match,
+		const QVariant &context) {
+	if (!controller) {
+		return false;
+	}
+	controller->showToast(ktr("woof"));
+	return true;
+}
+
 } // namespace
 
 bool TryRouterForLocalUrl(
@@ -1729,6 +1752,14 @@ bool TryRouterForLocalUrl(
 
 const std::vector<LocalUrlHandler> &LocalUrlHandlers() {
 	static auto Result = std::vector<LocalUrlHandler>{
+		{
+			u"^nya$"_q,
+			ShowNya
+		},
+		{
+			u"^woof$"_q,
+			ShowWoof
+		},
 		{
 			u"^join/?\\?invite=([a-zA-Z0-9\\.\\_\\-]+)(&|$)"_q,
 			JoinGroupByHash
