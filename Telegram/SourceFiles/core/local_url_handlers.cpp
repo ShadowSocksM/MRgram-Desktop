@@ -61,6 +61,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "settings/settings_credits_graphics.h"
 #include "settings/settings_privacy_controllers.h"
 #include "settings/sections/settings_premium.h"
+#include "boxes/abstract_box.h"
 #include "storage/storage_account.h"
 #include "mainwidget.h"
 #include "main/main_account.h"
@@ -1742,6 +1743,55 @@ bool ShowWoof(
 	return true;
 }
 
+bool HandleOpenMessage(
+		Window::SessionController *controller,
+		const Match &match,
+		const QVariant &context) {
+	if (!controller) {
+		return false;
+	}
+	const auto params = url_parse_params(
+		match->captured(1),
+		qthelp::UrlParamNameTransform::ToLower);
+	const auto userId = params.value(u"user_id"_q).toLongLong();
+	const auto msgId = params.value(u"message_id"_q).toInt();
+	if (!userId) {
+		return false;
+	}
+	const auto peer = controller->session().data().peerLoaded(static_cast<PeerId>(userId));
+	if (peer != nullptr) {
+		controller->showPeerHistory(peer, Window::SectionShow::Way::Forward, msgId);
+		return true;
+	}
+	Core::App().hideMediaView();
+	controller->show(Ui::MakeInformBox(ktr("box/seen-user-id/text")));
+	return false;
+}
+
+bool HandleUser(
+		Window::SessionController *controller,
+		const Match &match,
+		const QVariant &context) {
+	if (!controller) {
+		return false;
+	}
+	const auto params = url_parse_params(
+				match->captured(1),
+		qthelp::UrlParamNameTransform::ToLower);
+	const auto userId = params.value(u"id"_q).toLongLong();
+	if (!userId) {
+		return false;
+	}
+	const auto peer = controller->session().data().peerLoaded(static_cast<PeerId>(userId));
+	if (peer != nullptr) {
+		controller->showPeerInfo(peer);
+		return true;
+	}
+	Core::App().hideMediaView();
+	controller->show(Ui::MakeInformBox(ktr("box/seen-user-id/text")));
+	return false;
+}
+
 } // namespace
 
 bool TryRouterForLocalUrl(
@@ -1759,6 +1809,14 @@ const std::vector<LocalUrlHandler> &LocalUrlHandlers() {
 		{
 			u"^woof$"_q,
 			ShowWoof
+		},
+		{
+			u"^openmessage\\?(.+)(#|$)"_q,
+			HandleOpenMessage,
+		},
+		{
+			u"^user\\?(.+)(#|$)"_q,
+			HandleUser,
 		},
 		{
 			u"^join/?\\?invite=([a-zA-Z0-9\\.\\_\\-]+)(&|$)"_q,
