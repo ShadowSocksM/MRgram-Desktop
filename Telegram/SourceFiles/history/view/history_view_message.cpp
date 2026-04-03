@@ -38,6 +38,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/premium_preview_box.h"
 #include "boxes/share_box.h"
 #include "boxes/peers/tag_info_box.h"
+#include "yukigram/settings/right_action_comments.h"
 #include "ui/chat/torn_edge.h"
 #include "ui/effects/reaction_fly_animation.h"
 #include "ui/effects/ripple_animation.h"
@@ -1198,7 +1199,7 @@ void Message::animateReaction(Ui::ReactionFlyAnimationArgs &&args) {
 	if (bubble) {
 		// Entry page is always a bubble bottom.
 		auto inner = g;
-		if (_comments) {
+		if (_comments && !displayRightActionComments()) {
 			inner.setHeight(inner.height() - st::historyCommentsButtonHeight);
 		}
 		auto trect = inner.marginsRemoved(st::msgPadding);
@@ -1797,7 +1798,7 @@ void Message::draw(Painter &p, const PaintContext &context) const {
 	const auto customHighlight = mediaDisplayed && media->customHighlight();
 	if (!mediaSelectionIntervals.empty() || customHighlight) {
 		auto localMediaBottom = gForIntervals.top() + gForIntervals.height();
-		if (data()->repliesAreComments() || data()->externalReply()) {
+		if ((data()->repliesAreComments() || data()->externalReply()) && !displayRightActionComments()) {
 			localMediaBottom -= st::historyCommentsButtonHeight;
 		}
 		if (_viewButton) {
@@ -2373,6 +2374,9 @@ void Message::paintCommentsButton(
 		QRect &g,
 		const PaintContext &context) const {
 	if (!data()->repliesAreComments() && !data()->externalReply()) {
+		return;
+	}
+	if (displayRightActionComments()) {
 		return;
 	}
 	if (!_comments) {
@@ -3255,7 +3259,7 @@ PointState Message::pointState(QPoint point) const {
 			auto mediaOnBottom = (mediaDisplayed && media->isBubbleBottom()) || check || (entry/* && entry->isBubbleBottom()*/);
 			auto mediaOnTop = (mediaDisplayed && media->isBubbleTop()) || (entry && entry->isBubbleTop());
 
-			if (item->repliesAreComments() || item->externalReply()) {
+			if ((item->repliesAreComments() || item->externalReply()) && !displayRightActionComments()) {
 				g.setHeight(g.height() - st::historyCommentsButtonHeight);
 			}
 
@@ -3652,7 +3656,7 @@ BottomRippleMask Message::bottomRippleMask(int buttonHeight) const {
 }
 
 void Message::createCommentsButtonRipple() {
-	auto mask = bottomRippleMask(st::historyCommentsButtonHeight);
+	auto mask = bottomRippleMask(displayRightActionComments() ? 0 : st::historyCommentsButtonHeight);
 	_comments->ripple = std::make_unique<Ui::RippleAnimation>(
 		st::defaultRippleAnimation,
 		std::move(mask.image),
@@ -5967,9 +5971,10 @@ bool Message::displayRightActionComments() const {
 	return !isPinnedContext()
 		&& (context() != Context::SavedSublist)
 		&& data()->repliesAreComments()
+		&& (Yukigram::Settings::RightActionComments->current() || (true
 		&& media()
 		&& media()->isDisplayed()
-		&& !hasBubble();
+		&& !hasBubble()));
 }
 
 std::optional<QSize> Message::rightActionSize() const {
@@ -6798,7 +6803,7 @@ int Message::resizeContentGetHeight(int newWidth) {
 			newHeight += (bottomInfoHeight - st::msgDateFont->height);
 		}
 
-		if (item->repliesAreComments() || item->externalReply()) {
+		if ((item->repliesAreComments() || item->externalReply()) && !displayRightActionComments()) {
 			newHeight += st::historyCommentsButtonHeight;
 		} else if (_comments) {
 			_comments = nullptr;
