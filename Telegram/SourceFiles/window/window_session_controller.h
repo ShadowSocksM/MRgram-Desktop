@@ -312,6 +312,8 @@ public:
 		Dialogs::Key inChat,
 		PeerData *searchFrom = nullptr);
 
+	void searchMessages2(const QString &query, PeerData* inPeer, PeerData *from);
+
 	void resolveBoostState(
 		not_null<ChannelData*> channel,
 		int boostsToLift = 0);

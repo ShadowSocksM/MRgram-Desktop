@@ -3042,6 +3042,17 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 				std::move(callback),
 				&st::menuIconStats);
 		}
+		const auto peer = item->history()->peer;
+		if (peer->isChat() || peer->isMegagroup()) {
+			const auto msgSigned = pinItem->mainView()->data()->Get<HistoryMessageSigned>();
+			auto author = QString();
+			if (msgSigned) {
+				author = msgSigned->author;
+			}
+			_menu->addAction(tr::lng_context_search_from(tr::now), [=] {
+				controller->searchMessages2(author, peer, item->from());
+			}, &st::menuIconSearch);
+		}
 	};
 	const auto addPhotoActions = [&](not_null<PhotoData*> photo, HistoryItem *item) {
 		const auto media = photo->activeMediaView();

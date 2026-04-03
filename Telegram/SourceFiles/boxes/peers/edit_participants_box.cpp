@@ -2076,6 +2076,9 @@ base::unique_qptr<Ui::PopupMenu> ParticipantsBoxController::rowContextMenu(
 			(participant->isUser()
 				? &st::menuIconProfile
 				: &st::menuIconInfo));
+		result->addAction(tr::lng_context_search_from(tr::now), [=] {
+			_navigation->parentController()->searchMessages2(QString(), _peer, participant);
+		}, &st::menuIconSearch);
 	}
 	if (user && SupportsMemberTags(_peer)) {
 		const auto isSelf = user->isSelf();

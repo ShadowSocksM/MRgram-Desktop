@@ -646,6 +646,27 @@ void AddOfferAction(
 	}), &st::menuIconTagSell);
 }
 
+void AddMsgsFromUserAction(
+		not_null<Ui::PopupMenu*> menu,
+		const ContextMenuRequest& request,
+		not_null<ListWidget*> list) {
+	const auto item = request.item;
+	if (!request.selectedItems.empty() || !item) {
+		return;
+	}
+	const auto peer = item->history()->peer;
+	if (peer->isChat() || peer->isMegagroup()) {
+		const auto msgSigned = item->Get<HistoryMessageSigned>();
+		auto author = QString();
+		if (msgSigned) {
+			author = msgSigned->author;
+		}
+		menu->addAction(tr::lng_context_search_from(tr::now), [=] {
+			list->controller()->searchMessages2(author, peer, item->from());
+		}, &st::menuIconSearch);
+	}
+}
+
 bool AddSendNowSelectedAction(
 		not_null<Ui::PopupMenu*> menu,
 		const ContextMenuRequest &request,
@@ -1405,6 +1426,7 @@ void AddMessageActions(
 	AddPostLinkAction(menu, request);
 	AddForwardAction(menu, request, list);
 	AddOfferAction(menu, request, list);
+	AddMsgsFromUserAction(menu, request, list);
 	AddSendNowAction(menu, request, list);
 	AddDeleteAction(menu, request, list);
 	AddDownloadFilesAction(menu, request, list);

@@ -1513,6 +1513,15 @@ void SessionNavigation::searchMessages(
 	parentController()->content()->searchMessages(query, inChat, searchFrom);
 }
 
+void SessionNavigation::searchMessages2(const QString &query, PeerData* inPeer, PeerData *from) {
+	searchMessages(
+		query,
+		(inPeer && !inPeer->isUser())
+		? inPeer->owner().history(inPeer).get()
+		: Dialogs::Key(),
+		from ? from : inPeer);
+}
+
 auto SessionNavigation::showToast(Ui::Toast::Config &&config)
 -> base::weak_ptr<Ui::Toast::Instance> {
 	return uiShow()->showToast(std::move(config));
