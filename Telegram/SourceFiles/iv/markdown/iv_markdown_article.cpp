@@ -17,6 +17,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "iv/markdown/iv_markdown_media_reuse.h"
 #include "iv/markdown/iv_markdown_prepare_links.h"
 #include "iv/markdown/iv_markdown_prepare_serialize.h"
+#include "yukigram/settings/wide_messages.h"
 #include "lang/lang_keys.h"
 #include "ui/style/style_core_color.h"
 #include "ui/style/style_core_scale.h"
@@ -26,6 +27,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/dynamic_image.h"
 
 #include "styles/style_iv.h"
+#include "styles/style_chat.h"
 #include "styles/style_widgets.h"
 
 #include <algorithm>
@@ -4578,6 +4580,8 @@ void MarkdownArticle::Impl::clearTextLeafHeightOverride() {
 int MarkdownArticle::Impl::maxWidth() {
 	const auto &st = layoutStyle();
 	return std::max(
+		st.pageMaxWidth == st::msgMaxWidth && Yukigram::Settings::WideMessages->current() ?
+		2 * st::maxMediaSize : // Treat as "media" instead of "text" to constrain album widths
 		st.pageMaxWidth,
 		st.pagePadding.left()
 			+ st.pagePadding.right()

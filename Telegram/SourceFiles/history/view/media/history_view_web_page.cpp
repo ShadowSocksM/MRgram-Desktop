@@ -20,6 +20,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_photo_media.h"
 #include "data/data_session.h"
 #include "data/data_web_page.h"
+#include "yukigram/settings/wide_messages.h"
 #include "history/view/media/history_view_media_common.h"
 #include "history/view/media/history_view_media_generic.h"
 #include "history/view/media/history_view_unique_gift.h"
@@ -774,6 +775,9 @@ QSize WebPage::countCurrentSize(int newWidth) {
 	}
 
 	const auto padding = inBubblePadding() + innerMargin();
+	if (Yukigram::Settings::WideMessages->current()) {
+		accumulate_min(newWidth, maxWidth());
+	}
 	const auto innerWidth = newWidth - rect::m::sum::h(padding);
 	auto newHeight = 0;
 

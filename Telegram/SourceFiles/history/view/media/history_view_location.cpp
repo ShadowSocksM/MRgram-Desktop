@@ -15,6 +15,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/history_view_element.h"
 #include "history/view/history_view_message.h"
 #include "history/view/history_view_cursor_state.h"
+#include "yukigram/settings/wide_messages.h"
 #include "lang/lang_keys.h"
 #include "ui/chat/chat_style.h"
 #include "ui/dynamic_thumbnails.h"
@@ -312,9 +313,15 @@ QSize Location::countOptimalSize() {
 
 	if (_parent->hasBubble()) {
 		if (!_title.isEmpty()) {
+			if (Yukigram::Settings::WideMessages->current()) {
+				maxWidth = qMax(maxWidth, _title.maxWidth() + st::msgPadding.left() + st::msgPadding.right());
+			}
 			minHeight += qMin(_title.countHeight(maxWidth - st::msgPadding.left() - st::msgPadding.right()), 2 * st::webPageTitleFont->height);
 		}
 		if (!_description.isEmpty()) {
+			if (Yukigram::Settings::WideMessages->current()) {
+				maxWidth = qMax(maxWidth, _description.maxWidth() + st::msgPadding.left() + st::msgPadding.right());
+			}
 			minHeight += qMin(_description.countHeight(maxWidth - st::msgPadding.left() - st::msgPadding.right()), 3 * st::webPageDescriptionFont->height);
 		}
 		if (!_title.isEmpty() || !_description.isEmpty()) {
@@ -338,11 +345,7 @@ QSize Location::countCurrentSize(int newWidth) {
 		tw = st::maxMediaSize;
 	}
 	auto newHeight = th;
-	if (tw > newWidth) {
-		newHeight = (newWidth * newHeight / tw);
-	} else {
-		newWidth = tw;
-	}
+	newHeight = (newWidth * newHeight / tw);
 	auto minWidth = hostedInstantView
 		? std::max(_parent->minWidthForMedia(), 1)
 		: std::clamp(

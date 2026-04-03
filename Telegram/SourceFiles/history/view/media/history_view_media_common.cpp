@@ -30,6 +30,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_wall_paper.h"
 #include "data/data_media_types.h"
 #include "data/data_user.h"
+#include "yukigram/settings/wide_messages.h"
 #include "history/view/history_view_element.h"
 #include "history/view/media/history_view_media_grouped.h"
 #include "history/view/media/history_view_photo.h"
@@ -320,7 +321,7 @@ QImage PrepareWithBlurredBackground(
 QSize CountDesiredMediaSize(QSize original) {
 	return DownscaledSize(
 		style::ConvertScale(original),
-		{ st::maxMediaSize, st::maxMediaSize });
+		{ (1 + Yukigram::Settings::WideMessages->current()) * st::maxMediaSize, (2 + Yukigram::Settings::WideMessages->current()) * st::maxMediaSize / 2});
 }
 
 QSize CountMediaSize(QSize desired, int newWidth) {

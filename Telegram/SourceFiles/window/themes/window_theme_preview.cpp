@@ -11,6 +11,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "lang/lang_keys.h"
 #include "lottie/lottie_icon.h"
 #include "platform/platform_window_title.h"
+#include "yukigram/settings/wide_messages.h"
 #include "ui/text/text_options.h"
 #include "ui/text/text_utilities.h"
 #include "ui/empty_userpic.h"
@@ -268,7 +269,9 @@ void Generator::addAudioBubble(QVector<int> waveform, int waveactive, QString wa
 	const auto &st = st::msgFileLayout;
 	auto tleft = st.padding.left() + st.thumbSize + st.thumbSkip;
 	accumulate_max(width, tleft + st::normalFont->width(wavestatus) + skipBlock.width() + st::msgPadding.right());
+if (Yukigram::Settings::WideMessages->current()) {
 	accumulate_min(width, st::msgMaxWidth);
+}
 
 	auto height = st.padding.top() + st.thumbSize + st.padding.bottom();
 	addBubble(std::move(bubble), width, height, date, status);
@@ -301,7 +304,9 @@ void Generator::addTextBubble(QString text, QString date, Status status) {
 
 	auto width = _history.width() - st::msgMargin.left() - st::msgMargin.right();
 	accumulate_min(width, st::msgPadding.left() + bubble.text.maxWidth() + st::msgPadding.right());
+if (Yukigram::Settings::WideMessages->current()) {
 	accumulate_min(width, st::msgMaxWidth);
+}
 
 	auto textWidth = qMax(width - st::msgPadding.left() - st::msgPadding.right(), 1);
 	auto textHeight = bubble.text.countHeight(textWidth);
@@ -330,7 +335,9 @@ void Generator::addPhotoBubble(QString image, QString caption, QString date, Sta
 
 	auto width = _history.width() - st::msgMargin.left() - st::msgMargin.right();
 	accumulate_min(width, bubble.photoWidth);
+if (Yukigram::Settings::WideMessages->current()) {
 	accumulate_min(width, st::msgMaxWidth);
+}
 
 	auto textWidth = qMax(width - st::msgPadding.left() - st::msgPadding.right(), 1);
 	auto textHeight = bubble.text.countHeight(textWidth);

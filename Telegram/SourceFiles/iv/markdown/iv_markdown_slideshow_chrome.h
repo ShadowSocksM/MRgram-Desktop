@@ -24,6 +24,7 @@ namespace Iv::Markdown {
 
 [[nodiscard]] int MediaHeightForWidth(
 	int width,
+	bool forWideMessages,
 	int aspectWidth,
 	int aspectHeight);
 
@@ -43,6 +44,7 @@ void PaintRoundButton(
 
 [[nodiscard]] int SlideshowFrameHeight(
 	int width,
+	bool forWideMessages,
 	int slideshowMinHeight,
 	gsl::span<const QSize> slideOriginalSizes);
 

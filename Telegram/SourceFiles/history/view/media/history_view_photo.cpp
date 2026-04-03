@@ -16,6 +16,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/history_view_cursor_state.h"
 #include "history/view/media/history_view_media_common.h"
 #include "history/view/media/history_view_media_spoiler.h"
+#include "yukigram/settings/wide_messages.h"
 #include "lang/lang_keys.h"
 #include "media/streaming/media_streaming_instance.h"
 #include "media/streaming/media_streaming_player.h"
@@ -247,7 +248,7 @@ QSize Photo::countOptimalSize() {
 		(_parent->hasBubble()
 			? st::historyPhotoBubbleMinWidth
 			: st::minPhotoSize),
-		maxMediaWidth);
+		(1 + Yukigram::Settings::WideMessages->current()) * maxMediaWidth);
 	const auto maxActualWidth = qMax(scaled.width(), minWidth);
 	auto maxWidth = qMax(maxActualWidth, scaled.height());
 	auto minHeight = qMax(scaled.height(), st::minPhotoSize);
@@ -256,7 +257,10 @@ QSize Photo::countOptimalSize() {
 		const auto captionMaxWidth = _parent->textualMaxWidth();
 		if (botTop || !_parent->data()->isFakeAboutView()) {
 			const auto maxWithCaption = qMin(st::msgMaxWidth, captionMaxWidth);
-			maxWidth = qMin(qMax(maxWidth, maxWithCaption), st::msgMaxWidth);
+			maxWidth = qMax(maxWidth, maxWithCaption);
+			if (!Yukigram::Settings::WideMessages->current()) {
+				maxWidth = qMin(maxWidth, st::msgMaxWidth);
+			}
 			minHeight = adjustHeightForLessCrop(
 				dimensions,
 				{ maxWidth, minHeight });
@@ -276,7 +280,7 @@ QSize Photo::countCurrentSize(int newWidth) {
 	const auto hostedInstantView = IsHostedInstantViewMedia(_parent);
 	const auto thumbMaxWidth = hostedInstantView
 		? std::max(newWidth, 1)
-		: qMin(newWidth, st::maxMediaSize);
+		: qMin(newWidth, (1 + Yukigram::Settings::WideMessages->current()) * st::maxMediaSize);
 	const auto minWidth = std::clamp(
 		_parent->minWidthForMedia(),
 		qMin(thumbMaxWidth, _parent->hasBubble()

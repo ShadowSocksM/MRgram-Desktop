@@ -8,8 +8,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "iv/markdown/iv_markdown_slideshow_chrome.h"
 
 #include "ui/image/image_prepare.h"
+#include "yukigram/settings/wide_messages.h"
 #include "styles/palette.h"
 #include "styles/style_iv.h"
+#include "styles/style_chat.h"
 
 #include <algorithm>
 #include <cmath>
@@ -58,15 +60,21 @@ constexpr auto kInactiveDotOpacity = 0.5;
 
 } // namespace
 
-int MediaHeightForWidth(
+[[nodiscard]] int MediaHeightForWidth(
 		int width,
+		bool forWideMessages,
 		int aspectWidth,
 		int aspectHeight) {
 	aspectWidth = std::max(aspectWidth, 1);
 	aspectHeight = std::max(aspectHeight, 1);
-	return std::max(
+	const auto preferredHeight = std::max(
 		int((int64(width) * aspectHeight + aspectWidth - 1) / aspectWidth),
 		1);
+	if (forWideMessages && Yukigram::Settings::WideMessages->current()) {
+		return std::min(preferredHeight, 2 * st::maxMediaSize);
+	} else {
+		return preferredHeight;
+	}
 }
 
 QPainterPath RoundedRectPath(QRect rect, int radius) {
@@ -140,13 +148,14 @@ QImage PrepareWithBlurredBackground(
 
 int SlideshowFrameHeight(
 		int width,
+		bool forWideMessages,
 		int slideshowMinHeight,
 		gsl::span<const QSize> slideOriginalSizes) {
 	auto result = std::numeric_limits<int>::max();
 	for (const auto &original : slideOriginalSizes) {
 		result = std::min(
 			result,
-			MediaHeightForWidth(width, original.width(), original.height()));
+			MediaHeightForWidth(width, forWideMessages, original.width(), original.height()));
 	}
 	if (result == std::numeric_limits<int>::max()) {
 		result = std::max(slideshowMinHeight, 1);

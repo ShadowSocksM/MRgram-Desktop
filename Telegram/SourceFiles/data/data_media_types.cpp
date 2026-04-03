@@ -9,6 +9,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "base/random.h"
 #include "boxes/send_credits_box.h" // CreditsEmoji.
+#include "yukigram/settings/wide_messages.h"
 #include "history/history.h"
 #include "history/history_item.h" // CreateMedia.
 #include "history/history_item_components.h"
@@ -1066,7 +1067,7 @@ std::unique_ptr<HistoryView::Media> MediaPhoto::createView(
 					message,
 					_chat,
 					_photo,
-					st::msgServicePhotoWidth));
+					(1 + Yukigram::Settings::WideMessages->current()) * st::msgServicePhotoWidth));
 		}
 		return std::make_unique<HistoryView::Photo>(
 			message,

@@ -14,6 +14,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/history_item.h"
 #include "history/history_item_components.h"
 #include "history/history_item_helpers.h"
+#include "yukigram/settings/wide_messages.h"
 #include "data/data_abstract_structure.h"
 #include "data/data_chat.h"
 #include "data/data_channel.h"
@@ -157,7 +158,7 @@ void PaintPreparedDate(
 		int w,
 		bool chatWide) {
 	int left = st::msgServiceMargin.left();
-	const auto maxwidth = chatWide
+	const auto maxwidth = (!Yukigram::Settings::WideMessages->current() && chatWide)
 		? std::min(w, WideChatWidth())
 		: w;
 	w = maxwidth - st::msgServiceMargin.left() - st::msgServiceMargin.left();
@@ -450,7 +451,7 @@ bool Service::consumeHorizontalScroll(
 
 QRect Service::countGeometry() const {
 	auto result = QRect(0, 0, width(), height());
-	if (delegate()->elementChatMode() == ElementChatMode::Wide) {
+	if (!Yukigram::Settings::WideMessages->current() && delegate()->elementChatMode() == ElementChatMode::Wide) {
 		result.setWidth(qMin(result.width(), st::msgMaxWidth + 2 * st::msgPhotoSkip + 2 * st::msgMargin.left()));
 	}
 	auto margins = st::msgServiceMargin;
@@ -489,7 +490,7 @@ QSize Service::performCountCurrentSize(int newWidth) {
 	const auto media = this->media();
 	const auto mediaDisplayed = media && media->isDisplayed();
 	auto contentWidth = newWidth;
-	if (delegate()->elementChatMode() == ElementChatMode::Wide) {
+	if (!Yukigram::Settings::WideMessages->current() && delegate()->elementChatMode() == ElementChatMode::Wide) {
 		accumulate_min(contentWidth, st::msgMaxWidth + 2 * st::msgPhotoSkip + 2 * st::msgMargin.left());
 	}
 	contentWidth -= st::msgServiceMargin.left() + st::msgServiceMargin.left(); // two small margins

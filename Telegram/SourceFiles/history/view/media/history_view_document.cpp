@@ -18,6 +18,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/history_item_components.h"
 #include "history/history_item.h"
 #include "history/history.h"
+#include "yukigram/settings/wide_messages.h"
 #include "core/click_handler_types.h" // kDocumentFilenameTooltipProperty.
 #include "history/view/history_view_element.h"
 #include "history/view/history_view_message.h"
@@ -601,7 +602,9 @@ QSize Document::countOptimalSize() {
 
 	if (const auto named = Get<HistoryDocumentNamed>()) {
 		accumulate_max(maxWidth, tleft + named->name.maxWidth() + tright);
+	if (!Yukigram::Settings::WideMessages->current()) {
 		accumulate_min(maxWidth, st::msgMaxWidth);
+	}
 	}
 	if (voice) {
 		const auto maxWaveformWidth = ::Media::Player::kWaveformSamplesCount *

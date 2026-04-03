@@ -16,6 +16,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/click_handler_types.h" // ClickHandlerContext
 #include "core/ui_integration.h"
 #include "core/update_checker.h"
+#include "yukigram/settings/wide_messages.h"
 #include "history/view/history_view_cursor_state.h"
 #include "history/history_item_components.h"
 #include "history/history_item_helpers.h"
@@ -6615,7 +6616,7 @@ int Message::resizeContentGetHeight(int newWidth) {
 		}
 	}
 	accumulate_min(contentWidth, maxWidth());
-	_bubbleWidthLimit = (UnlimitedMessageWidth.value() && !mediaDisplayed)
+	_bubbleWidthLimit = (Yukigram::Settings::WideMessages->current() || (UnlimitedMessageWidth.value() && !mediaDisplayed))
 		? 0x3FFFFFF
 		: std::max({
 			st::msgMaxWidth,
@@ -6696,7 +6697,7 @@ int Message::resizeContentGetHeight(int newWidth) {
 		if (reactionsInBubble) {
 			_reactions->resizeGetHeight(textWidth);
 		}
-		if (contentWidth == maxWidth() && !appearing) {
+		if (!Yukigram::Settings::WideMessages->current() && contentWidth == maxWidth() && !appearing) {
 			if (mediaDisplayed) {
 				newHeight += media->height() - media->minHeight();
 				if (check) {
