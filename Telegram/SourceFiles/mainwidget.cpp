@@ -36,6 +36,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/text/text_utilities.h"
 #include "ui/toast/toast.h"
 #include "ui/ui_utility.h"
+#include "yukigram/settings/force_mobile_layout.h"
 #include "window/window_connecting_widget.h"
 #include "window/window_top_bar_wrap.h"
 #include "window/notifications_manager.h"
@@ -351,6 +352,7 @@ MainWidget::MainWidget(
 		});
 	};
 	rpl::merge(
+		Yukigram::Settings::ForceMobileLayout->changes() | rpl::to_empty,
 		Core::App().settings().dialogsWithChatWidthRatioChanges(
 		) | filter(true) | rpl::to_empty,
 		Core::App().settings().dialogsNoChatWidthRatioChanges(
@@ -3164,7 +3166,7 @@ void MainWidget::updateWindowAdaptiveLayout() {
 
 	// Check if we are in a single-column layout in a wide enough window
 	// for the normal layout. If so, switch to the normal layout.
-	if (layout.windowLayout == Window::Adaptive::WindowLayout::OneColumn) {
+	if ((!Yukigram::Settings::ForceMobileLayout->current()) && layout.windowLayout == Window::Adaptive::WindowLayout::OneColumn) {
 		auto chatWidth = layout.chatWidth;
 		//if (session().settings().tabbedSelectorSectionEnabled()
 		//	&& chatWidth >= _history->minimalWidthForTabbedSelectorSection()) {

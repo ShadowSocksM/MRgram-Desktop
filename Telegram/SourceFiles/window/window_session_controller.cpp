@@ -90,6 +90,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/effects/message_sending_animation_controller.h"
 #include "ui/style/style_palette_colorizer.h"
 #include "ui/toast/toast.h"
+#include "yukigram/settings/force_mobile_layout.h"
 #include "calls/calls_instance.h" // Core::App().calls().inCall().
 #include "calls/group/calls_group_call.h"
 #include "calls/group/calls_group_common.h"
@@ -2627,6 +2628,7 @@ auto SessionController::computeColumnLayout() const -> ColumnLayout {
 	auto dialogsWidth = 0, chatWidth = 0, thirdWidth = 0;
 
 	auto useOneColumnLayout = [&] {
+		if (Yukigram::Settings::ForceMobileLayout->current()) return true;
 		auto minimalNormal = st::columnMinimalWidthLeft
 			+ st::columnMinimalWidthMain;
 		if (_hasDialogs && bodyWidth < minimalNormal) {
