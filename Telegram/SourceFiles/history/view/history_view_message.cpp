@@ -7225,7 +7225,7 @@ const HistoryMessageEdited *Message::displayedEditBadge() const {
 }
 
 void Message::ensureSummarizeButton() const {
-	if (data()->canBeSummarized()
+	if (false && data()->canBeSummarized()
 		/*&& item->originalText().text.size() >= kSummarizeThreshold*/) {
 		if (!_summarize) {
 			_summarize
