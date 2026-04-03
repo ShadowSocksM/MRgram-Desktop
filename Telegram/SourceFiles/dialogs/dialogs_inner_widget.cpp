@@ -4741,6 +4741,7 @@ void InnerWidget::peerSearchReceived(Api::PeerSearchResult result) {
 		if (inlist(peer) || _sponsoredRemoved.contains(peer)) {
 			continue;
 		}
+		continue;
 		_peerSearchResults.push_back(
 			std::make_unique<PeerSearchResult>(peer));
 		_peerSearchResults.back()->sponsored
