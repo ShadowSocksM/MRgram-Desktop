@@ -36,6 +36,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/mime_type.h"
 #include "history/view/history_view_draw_to_reply.h"
 #include "history/view/controls/history_view_rich_draft_preview.h"
+#include "yukigram/settings/always_show_scheduled.h"
 #include "ui/emoji_config.h"
 #include "ui/chat/attach/attach_prepare.h"
 #include "ui/chat/choose_theme_controller.h"
@@ -3877,9 +3878,9 @@ void HistoryWidget::setupScheduledToggle() {
 }
 
 void HistoryWidget::refreshScheduledToggle() {
-	const auto has = _history
+	const auto has = Yukigram::Settings::AlwaysShowScheduled->current() || (_history
 		&& _canSendMessages
-		&& (session().scheduledMessages().count(_history) > 0);
+		&& (session().scheduledMessages().count(_history) > 0));
 	if (!_scheduled && has) {
 		_scheduled.create(this, st::historyScheduledToggle);
 		_scheduled->setAccessibleName(tr::lng_scheduled_messages(tr::now));
