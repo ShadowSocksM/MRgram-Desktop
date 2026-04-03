@@ -9,6 +9,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "mtproto/sender.h"
 
+namespace base::Platform {
+class SystemMediaControls;
+} // namespace base::Platform
+
 namespace crl {
 class semaphore;
 } // namespace crl
@@ -232,6 +236,9 @@ private:
 	base::flat_map<
 		not_null<Main::Session*>,
 		std::vector<base::weak_ptr<GroupCall>>> _streams;
+
+	const std::unique_ptr<base::Platform::SystemMediaControls> _controls;
+	rpl::lifetime _lifetime;
 
 };
 

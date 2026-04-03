@@ -6,6 +6,8 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "calls/calls_instance.h"
+#include "base/platform/base_platform_system_media_controls.h"
+#include "yukigram/settings/mpris_call_hangup.h"
 
 #include "calls/calls_call.h"
 #include "calls/group/calls_group_common.h"
@@ -188,7 +190,93 @@ Instance::Instance()
 : _delegate(std::make_unique<Delegate>(this))
 , _cachedDhConfig(std::make_unique<DhConfig>())
 , _chooseJoinAs(std::make_unique<Group::ChooseJoinAsProcess>())
-, _startWithRtmp(std::make_unique<Group::StartRtmpProcess>()) {
+, _startWithRtmp(std::make_unique<Group::StartRtmpProcess>())
+, _controls(std::make_unique<base::Platform::SystemMediaControls>()) {
+
+	using Command = base::Platform::SystemMediaControls::Command;
+
+	_controls->commandRequests() | rpl::filter([](auto unused) { return Yukigram::Settings::MprisCallHangup->current(); }) | rpl::on_next([=](Command command) {
+		switch (command) {
+		case Command::PlayPause: [[fallthrough]];
+		case Command::Play: [[fallthrough]];
+		case Command::Pause: {
+			if (_currentCall) {
+				_currentCall->answer();
+			}
+		} break;
+		case Command::Next: [[fallthrough]];
+		case Command::Previous: [[fallthrough]];
+		case Command::Stop: [[fallthrough]];
+		case Command::Quit: {
+			if (_currentCall) {
+				_currentCall->hangup();
+			}
+			if (_currentGroupCall) {
+				_currentGroupCall->hangup();
+			}
+		} break;
+		}
+	}, _lifetime);
+
+	const auto format_peer_link = [](const QString &username, const PeerId id) {
+		if (username.isEmpty()) {
+			return "tg-id#" + QString::number(id.value & PeerId::kChatTypeMask);
+		} else {
+			return "t.me/" + username;
+		}
+	};
+
+	const auto set_title = [=](const QString &username, const PeerId id, const QString &displayname) {
+		_controls->setTitle(QString("%1 -- %2").arg(displayname).arg(format_peer_link(username, id)));
+	};
+
+	const auto setup_controls = [=](bool enabled) {
+		_controls->setEnabled(enabled);
+		_controls->setIsPlayPauseEnabled(true);
+		_controls->setIsNextEnabled(true);
+		_controls->setIsPreviousEnabled(true);
+		_controls->setIsStopEnabled(true);
+	};
+
+	const auto update_call_state = [=](Call::State state) {
+		if (state == Call::State::WaitingUserConfirmation || state == Call::State::Busy) {
+			_controls->setPlaybackStatus(base::Platform::SystemMediaControls::PlaybackStatus::Stopped);
+		} else if (state == Call::State::ExchangingKeys || state == Call::State::Established) {
+			_controls->setPlaybackStatus(base::Platform::SystemMediaControls::PlaybackStatus::Playing);
+		} else {
+			_controls->setPlaybackStatus(base::Platform::SystemMediaControls::PlaybackStatus::Paused);
+		}
+	};
+
+	currentCallValue() | rpl::filter([](auto unused) { return Yukigram::Settings::MprisCallHangup->current(); }) | rpl::on_next([=](Call *current_call) {
+		setup_controls(current_call);
+		if (!current_call) {
+			return;
+		}
+
+		const bool isIncoming = current_call->type() == Call::Type::Incoming;
+		_controls->setArtist(isIncoming ? "Incoming call" : "Outgoing call");
+
+		const auto &user = current_call->user();
+		set_title(user->username(), user->id, user->firstName);
+		update_call_state(current_call->state());
+
+		current_call->stateValue() | rpl::filter([](auto unused) { return Yukigram::Settings::MprisCallHangup->current(); }) | rpl::on_next(update_call_state, current_call->lifetime());
+	}, _lifetime);
+
+	currentGroupCallValue() | rpl::filter([](auto unused) { return Yukigram::Settings::MprisCallHangup->current(); }) | rpl::on_next([=](GroupCall *current_call) {
+		setup_controls(current_call);
+		if (!current_call) {
+			return;
+		}
+
+		_controls->setArtist("Group call");
+
+		const auto &peer = current_call->peer();
+		set_title(peer->username(), peer->id, peer->name());
+		_controls->setPlaybackStatus(base::Platform::SystemMediaControls::PlaybackStatus::Playing);
+
+	}, _lifetime);
 }
 
 Instance::~Instance() {
