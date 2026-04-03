@@ -36,6 +36,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "lang/lang_cloud_manager.h"
 #include "lang/lang_instance.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "lottie/lottie_icon.h"
 #include "menu/menu_checked_action.h"
 #include "main/main_account.h"
@@ -678,6 +679,13 @@ void Main::fillTopBarMenu(const Ui::Menu::MenuCallback &addAction) {
 			&st::menuIconEdit);
 	}
 	const auto window = &controller()->window();
+	const auto restart = addAction({
+		.text = ktr("settings/main/restart/title"),
+		.handler = [] { Core::Restart(); },
+		.icon = &st::menuIconLeaveAttention,
+		.isAttention = true
+	});
+	restart->setProperty("highlight-control-id", u"settings/restart"_q);
 	const auto logout = addAction({
 		.text = tr::lng_settings_logout(tr::now),
 		.handler = [=] { window->showLogoutConfirmation(); },
