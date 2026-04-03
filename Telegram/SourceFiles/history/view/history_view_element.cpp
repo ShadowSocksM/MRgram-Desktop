@@ -48,6 +48,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "payments/payments_reaction_process.h" // TryAddingPaidReaction.
 #include "window/window_session_controller.h"
 #include "window/section_widget.h"
+#include "yukigram/settings/disable_animoji.h"
 #include "ui/chat/chat_style.h"
 #include "ui/chat/torn_edge.h"
 #include "ui/effects/glare.h"
@@ -1658,7 +1659,7 @@ void Element::refreshMedia(Element *replacing) {
 		const auto emoji = isolatedEmoji();
 		const auto emojiStickers = &history()->session().emojiStickersPack();
 		const auto skipPremiumEffect = false;
-		if (const auto sticker = emojiStickers->stickerForEmoji(emoji)) {
+		if (const auto sticker = emojiStickers->stickerForEmoji(emoji); sticker && (!Yukigram::Settings::DisableAnimoji->current())) {
 			auto content = std::make_unique<Sticker>(
 				this,
 				sticker.document,
