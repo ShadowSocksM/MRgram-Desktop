@@ -12,6 +12,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/history_view_send_action.h"
 #include "boxes/add_contact_box.h"
 #include "ui/boxes/confirm_box.h"
+#include "boxes/peers/edit_participants_box.h"
 #include "info/info_memento.h"
 #include "info/info_controller.h"
 #include "info/profile/info_profile_values.h"
@@ -61,6 +62,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_send_action.h"
 #include "dialogs/dialogs_main_list.h"
 #include "chat_helpers/emoji_interactions.h"
+#include "yukigram/settings/quick_admin_list.h"
 #include "yukigram/settings/quick_recent_actions.h"
 #include "base/call_delayed.h"
 #include "base/unixtime.h"
@@ -129,6 +131,7 @@ TopBarWidget::TopBarWidget(
 , _groupCall(this, st::topBarGroupCall)
 , _search(this, st::topBarSearch)
 , _recentActions(this, st::topBarRecentActions)
+, _admins(this, st::topBarAdmins)
 , _infoToggle(this, st::topBarInfo)
 , _menuToggle(this, st::topBarMenuToggle)
 , _titlePeerText(st::windowMinWidth / 3)
@@ -165,6 +168,12 @@ TopBarWidget::TopBarWidget(
 	_recentActions->setClickedCallback([=] {
 		const auto channel = _activeChat.key.peer()->asChannel();
 		_controller->showSection(std::make_shared<AdminLog::SectionMemento>(channel));
+	});
+	_admins->setClickedCallback([=] {
+		ParticipantsBoxController::Start(
+					controller,
+					_activeChat.key.peer(),
+					ParticipantsBoxController::Role::Admins);
 	});
 	_infoToggle->setClickedCallback([=] { toggleInfoSection(); });
 	_back->setAcceptBoth();
@@ -1276,6 +1285,10 @@ void TopBarWidget::updateControlsGeometry() {
 		_infoToggle->moveToRight(_rightTaken, otherButtonsTop);
 		_rightTaken += _infoToggle->width();
 	}
+	_admins->moveToRight(_rightTaken, otherButtonsTop);
+	if (!_admins->isHidden()) {
+		_rightTaken += _admins->width() + st::topBarSkip;
+	}
 	_recentActions->moveToRight(_rightTaken, otherButtonsTop);
 	if (!_recentActions->isHidden()) {
 		_rightTaken += _recentActions->width() + st::topBarSkip;
@@ -1419,6 +1432,30 @@ void TopBarWidget::updateControlsVisibility() {
 		return false;
 	}();
 	_recentActions->setVisible(isAdmin);
+	const auto needShow = [&] {
+		if (!Yukigram::Settings::QuickAdminList->current()) {
+			return false;
+		}
+		if (_activeChat.section == Section::ChatsList) {
+			return false;
+		}
+		if (const auto peer = _activeChat.key.peer()) {
+			if (peer->isMonoforum()) {
+				return false;
+			}
+			if (peer->isMegagroup()) {
+				return true;
+			}
+			if (peer->isChannel()) {
+				const auto channel = peer->asChannel();
+				if (channel->hasAdminRights() || channel->amCreator()) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}();
+	_admins->setVisible(needShow);
 	const auto callsEnabled = [&] {
 		if (const auto peer = _activeChat.key.peer()) {
 			if (const auto user = peer->asUser()) {

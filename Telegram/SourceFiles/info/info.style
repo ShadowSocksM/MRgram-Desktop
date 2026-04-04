@@ -961,6 +961,10 @@ topBarRecentActions: IconButton(topBarSearch) {
 	icon: icon {{ "info/edit/group_manage_actions_topbar", menuIconFg }};
 	iconOver: icon {{ "info/edit/group_manage_actions_topbar", menuIconFgOver }};
 }
+topBarAdmins: IconButton(topBarSearch) {
+	icon: icon {{ "info/edit/group_manage_admins_topbar", menuIconFg }};
+	iconOver: icon {{ "info/edit/group_manage_admins_topbar", menuIconFgOver }};
+}
 topBarInfoActive: icon {{ "top_bar_profile", windowActiveTextFg }};
 topBarActionSkip: 10px;
 topBarActionButtonLargeRadius: 8px;
