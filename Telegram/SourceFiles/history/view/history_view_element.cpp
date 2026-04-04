@@ -36,6 +36,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_session.h"
 #include "iv/iv_cached_media.h"
 #include "iv/iv_rich_page.h"
+#include "yukigram/settings/show_message_id.h"
 #include "base/unixtime.h"
 #include "boxes/premium_preview_box.h"
 #include "core/application.h"
@@ -70,6 +71,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_message_reactions.h"
 #include "data/data_user.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "styles/style_chat.h"
 #include "styles/style_chat_style.h"
 #include "styles/style_dialogs.h"
@@ -750,6 +752,10 @@ QString DateTooltipText(not_null<Element*> view) {
 	}
 	if (const auto stars = item->out() ? item->starsPaid() : 0) {
 		dateText += '\n' + tr::lng_you_paid_stars(tr::now, lt_count, stars);
+	}
+	if (const auto msgId = view->data()->fullId().msg) {
+		const auto clean = CleanMessageId(msgId);
+		dateText += '\n' + ktr("history/tooltip/message-id", { "id", QString::number(clean >= 0 ? clean : msgId.bare) });
 	}
 	return dateText;
 }

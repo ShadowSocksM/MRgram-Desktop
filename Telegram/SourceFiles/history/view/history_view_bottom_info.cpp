@@ -24,6 +24,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/media/history_view_media.h"
 #include "history/view/history_view_message.h"
 #include "history/view/history_view_cursor_state.h"
+#include "yukigram/settings/show_message_id.h"
 #include "base/unixtime.h"
 #include "chat_helpers/emoji_interactions.h"
 #include "core/click_handler_types.h"
@@ -504,7 +505,8 @@ void BottomInfo::layoutDateText() {
 		? FormatEditedDate(_data.date, _data.editedDate)
 		: edited + ((_data.flags & Data::Flag::ForwardedDate)
 		? Ui::FormatDateTimeSavedFrom(_data.date)
-		: QLocale().toString(_data.date.time(), Lang::TimeFormat()));
+		: QLocale().toString(_data.date.time(), Lang::TimeFormat()))
+		+ _data.msgId;
 	const auto afterAuthor = prefix + date;
 	const auto afterAuthorWidth = st::msgDateFont->width(afterAuthor);
 	const auto authorWidth = st::msgDateFont->width(author);
@@ -746,6 +748,9 @@ BottomInfo::Data BottomInfoDataFromMessage(not_null<Message*> message) {
 		if (item->isSilent()) {
 			result.flags |= Flag::Silent;
 		}
+	}
+	if (const auto id = CleanMessageId(item->fullId().msg); Yukigram::Settings::ShowMsgId->current() && id >= 0) {
+		result.msgId = QString(" (%1)").arg(id);
 	}
 	if (!forwarded) {
 		return result;
