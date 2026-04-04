@@ -672,7 +672,7 @@ void WhenAction::resolveMinWidth() {
 	const auto sampleDate = QDate::currentDate();
 	const auto sampleTime = QLocale().toString(
 		QTime::currentTime(),
-		QLocale::ShortFormat);
+		Lang::TimeFormat());
 	const auto maxTextWidth = added + std::max({
 		width(tr::lng_contacts_loading(tr::now)),
 		(width(tr::lng_context_read_hidden(tr::now))

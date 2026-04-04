@@ -40,6 +40,9 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 namespace Lang {
 
+[[nodiscard]] QString TimeFormat();
+[[nodiscard]] QString DateTimeFormat();
+
 [[nodiscard]] QString Id();
 [[nodiscard]] rpl::producer<> Updated();
 [[nodiscard]] QString GetNonDefaultValue(const QByteArray &key);

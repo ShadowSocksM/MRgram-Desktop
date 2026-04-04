@@ -83,23 +83,14 @@ QString FormatProgressText(qint64 ready, qint64 total) {
 
 QString FormatDateTime(QDateTime date) {
 	const auto now = QDateTime::currentDateTime();
+	const auto timeText = QLocale().toString(date.time(), Lang::TimeFormat());
 	if (date.date() == now.date()) {
-		return tr::lng_mediaview_today(
-			tr::now,
-			lt_time,
-			QLocale().toString(date.time(), QLocale::ShortFormat));
+		return tr::lng_mediaview_today(tr::now, lt_time, timeText);
 	} else if (date.date().addDays(1) == now.date()) {
-		return tr::lng_mediaview_yesterday(
-			tr::now,
-			lt_time,
-			QLocale().toString(date.time(), QLocale::ShortFormat));
+		return tr::lng_mediaview_yesterday(tr::now, lt_time, timeText);
 	} else {
-		return tr::lng_mediaview_date_time(
-			tr::now,
-			lt_date,
-			QLocale().toString(date.date(), QLocale::ShortFormat),
-			lt_time,
-			QLocale().toString(date.time(), QLocale::ShortFormat));
+		const auto dateText = QLocale().toString(date.date(), QLocale::ShortFormat);
+		return tr::lng_mediaview_date_time(tr::now, lt_date, dateText, lt_time, timeText);
 	}
 }
 
@@ -533,7 +524,7 @@ QString FormatDialogsDate(const QDateTime &lastTime) {
 
 	if ((lastDate == nowDate)
 		|| (std::abs(lastTime.secsTo(now)) < kRecentlyInSeconds)) {
-		return QLocale().toString(lastTime.time(), QLocale::ShortFormat);
+		return QLocale().toString(lastTime.time(), Lang::TimeFormat());
 	} else if (std::abs(lastDate.daysTo(nowDate)) < 7) {
 		return langDayOfWeek(lastDate);
 	} else {

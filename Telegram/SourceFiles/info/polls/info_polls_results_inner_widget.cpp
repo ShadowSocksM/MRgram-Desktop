@@ -133,7 +133,7 @@ void VoterRow::computeTexts() {
 	const auto voteDate = parsed.date();
 	_timeText = QLocale().toString(
 		parsed.time(),
-		QLocale::ShortFormat);
+		Lang::TimeFormat());
 	_timeWidth = st::pollResultsVoteTimeFont->width(_timeText);
 	if (voteDate == nowDate) {
 		return;

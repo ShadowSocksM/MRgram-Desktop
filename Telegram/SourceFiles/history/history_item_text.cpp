@@ -397,7 +397,7 @@ TextForMimeData HistorySelectedItemPlainWrappedText(
 		TextForMimeData &&body) {
 	auto result = TextForMimeData();
 	const auto time = u"[%1] "_q.arg(
-		QLocale().toString(ItemDateTime(item), QLocale::ShortFormat));
+		QLocale().toString(ItemDateTime(item), Lang::DateTimeFormat()));
 	const auto author = item->author()->name();
 	const auto size = time.size() + author.size() + 2 + body.expanded.size();
 	result.reserve(size);

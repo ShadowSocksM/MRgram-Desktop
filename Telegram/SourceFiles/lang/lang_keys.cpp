@@ -10,6 +10,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/const_string.h"
 #include "lang/lang_file_parser.h"
 #include "ui/integration.h"
+#include "yukigram/settings/time_with_seconds.h"
 
 #include <QtCore/QLocale>
 
@@ -193,7 +194,7 @@ QString langDateTime(const QDateTime &date) {
 		lt_date,
 		langDayOfMonth(date.date()),
 		lt_time,
-		QLocale().toString(date.time(), QLocale::ShortFormat));
+		QLocale().toString(date.time(), Lang::TimeFormat()));
 }
 
 QString langDateTimeFull(const QDateTime &date) {
@@ -202,10 +203,34 @@ QString langDateTimeFull(const QDateTime &date) {
 		lt_date,
 		langDayOfMonthFull(date.date()),
 		lt_time,
-		QLocale().toString(date.time(), QLocale::ShortFormat));
+		QLocale().toString(date.time(), Lang::TimeFormat()));
 }
 
 namespace Lang {
+
+QString longTimeFormat() {
+	return QLocale::system().timeFormat(QLocale::LongFormat)
+		.remove("t") // Convert to Medium format
+		.remove("[]") // Fix for `yue`
+		.remove("()") // Fix for `fa`
+		.simplified();
+}
+
+QString shortTimeFormat() {
+	return QLocale::system().timeFormat(QLocale::ShortFormat);
+}
+
+QString TimeFormat() {
+	return Yukigram::Settings::TimeWithSeconds->current() ? longTimeFormat() : shortTimeFormat();
+}
+
+QString DateTimeFormat() {
+	auto format = QLocale::system().dateTimeFormat(QLocale::ShortFormat);
+	if (Yukigram::Settings::TimeWithSeconds->current()) {
+		format.replace(shortTimeFormat(), longTimeFormat());
+	}
+	return format;
+}
 
 QString DefaultLanguageId() {
 	return kDefaultLanguage.utf16();

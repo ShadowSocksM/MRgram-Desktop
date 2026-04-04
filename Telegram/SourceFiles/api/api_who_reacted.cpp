@@ -706,23 +706,14 @@ QString FormatReadDate(TimeId date, const QDateTime &now) {
 	const auto parsed = base::unixtime::parse(date);
 	const auto readDate = parsed.date();
 	const auto nowDate = now.date();
+	const auto timeText = QLocale().toString(parsed.time(), Lang::TimeFormat());
 	if (readDate == nowDate) {
-		return tr::lng_mediaview_today(
-			tr::now,
-			lt_time,
-			QLocale().toString(parsed.time(), QLocale::ShortFormat));
+		return tr::lng_mediaview_today(tr::now, lt_time, timeText);
 	} else if (readDate.addDays(1) == nowDate) {
-		return tr::lng_mediaview_yesterday(
-			tr::now,
-			lt_time,
-			QLocale().toString(parsed.time(), QLocale::ShortFormat));
+		return tr::lng_mediaview_yesterday(tr::now, lt_time, timeText);
 	}
-	return tr::lng_mediaview_date_time(
-		tr::now,
-		lt_date,
-		langDayOfMonthShort(readDate),
-		lt_time,
-		QLocale().toString(parsed.time(), QLocale::ShortFormat));
+	const auto dateText = langDayOfMonthShort(readDate);
+	return tr::lng_mediaview_date_time(tr::now, lt_date, dateText, lt_time, timeText);
 }
 
 bool WhoReadExists(not_null<HistoryItem*> item) {
