@@ -2045,7 +2045,7 @@ void Application::RegisterUrlScheme() {
 		? u"-workdir \"%1\""_q.arg(cWorkingDir())
 		: QString();
 
-	base::Platform::RegisterUrlScheme(base::Platform::UrlSchemeDescriptor{
+	base::Platform::UnregisterUrlScheme(base::Platform::UrlSchemeDescriptor{
 		.executable = Platform::ExecutablePathForShortcuts(),
 		.arguments = arguments,
 		.protocol = u"tg"_q,
@@ -2056,7 +2056,7 @@ void Application::RegisterUrlScheme() {
 		.displayAppDescription = AppName.utf16(),
 	});
 
-	base::Platform::RegisterUrlScheme(base::Platform::UrlSchemeDescriptor{
+	base::Platform::UnregisterUrlScheme(base::Platform::UrlSchemeDescriptor{
 		.executable = Platform::ExecutablePathForShortcuts(),
 		.arguments = arguments,
 		.protocol = u"tonsite"_q,
