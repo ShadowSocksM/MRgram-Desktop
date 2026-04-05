@@ -28,6 +28,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/core_settings.h"
 #include "core/click_handler_types.h"
 #include "window/window_session_controller.h"
+#include "yukigram/settings/custom_emoji_size.h"
 #include "data/data_session.h"
 #include "data/data_document.h"
 #include "data/data_document_media.h"
@@ -232,7 +233,7 @@ QSize Sticker::MessageEffectSize() {
 }
 
 QSize Sticker::EmojiSize() {
-	const auto side = std::min(st::maxAnimatedEmojiSize, kMaxEmojiSizeFixed);
+	const auto side = std::min(Yukigram::Settings::CustomEmojiSize->current(), kMaxEmojiSizeFixed);
 	return { side, side };
 }
 
