@@ -92,6 +92,10 @@ enum class Command {
 	SupportScrollToCurrent,
 	SupportHistoryBack,
 	SupportHistoryForward,
+
+	FastForward,
+	FastCopy,
+	FastSteal,
 };
 
 [[maybe_unused]] constexpr auto kShowFolder = {

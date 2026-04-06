@@ -926,6 +926,7 @@ void ChooseRecipientBoxController::rowClicked(not_null<PeerListRow*> row) {
 			});
 		*weak = owned.data();
 		delegate()->peerListUiShow()->showBox(std::move(owned));
+		(*weak)->setTitle(delegate()->peerListGetTitle());
 		return;
 	} else if (const auto monoforum = peer->monoforum()) {
 		const auto weak = std::make_shared<base::weak_qptr<Ui::BoxContent>>();
@@ -1009,6 +1010,7 @@ void ChooseRecipientBoxController::rowClicked(not_null<PeerListRow*> row) {
 			});
 		*weak = owned.data();
 		delegate()->peerListUiShow()->showBox(std::move(owned));
+		(*weak)->setTitle(delegate()->peerListGetTitle());
 		return;
 	}
 	const auto history = peer->owner().history(peer);

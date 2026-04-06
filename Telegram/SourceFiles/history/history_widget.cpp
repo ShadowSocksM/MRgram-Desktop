@@ -10778,7 +10778,7 @@ bool HistoryWidget::updateCanSendMessage() {
 	return true;
 }
 
-void HistoryWidget::forwardSelected() {
+void HistoryWidget::forwardSelected(int steal) {
 	if (!_list) {
 		return;
 	}
@@ -10790,7 +10790,7 @@ void HistoryWidget::forwardSelected() {
 			if (const auto strong = weak.get()) {
 				strong->clearSelected();
 			}
-		});
+		}, steal);
 }
 
 void HistoryWidget::confirmDeleteSelected() {

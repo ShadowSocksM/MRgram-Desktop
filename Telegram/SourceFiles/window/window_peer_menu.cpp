@@ -3091,7 +3091,8 @@ base::weak_qptr<Ui::BoxContent> ShowChooseRecipientBox(
 base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		std::shared_ptr<ChatHelpers::Show> show,
 		Data::ForwardDraft &&draft,
-		Fn<void()> &&successCallback) {
+		Fn<void()> &&successCallback,
+		int steal) {
 	const auto session = &show->session();
 	const auto owner = &session->data();
 	const auto itemsList = owner->idsToItems(draft.ids);
@@ -3104,6 +3105,11 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 	const auto showForwardOptions = !hasOnlyForcedForwardedInfo
 		&& (!hasRichPage
 			|| HistoryView::Controls::CanHideForwardAuthor(session, itemsList));
+	if (steal > 1 && captionsCount > 0) {
+		draft.options = Data::ForwardOptions::NoNamesAndCaptions;
+	} else if (steal > 0) {
+		draft.options = Data::ForwardOptions::NoSenderNames;
+	}
 	draft.options = HistoryView::Controls::NormalizeForwardOptions(
 		session,
 		itemsList,
@@ -3448,6 +3454,20 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		box->peerListContent()->restoreState(std::move(state));
 	};
 
+	const auto updateTitle = [&](not_null<ListBox*> box) {
+		const auto flags = box->forwardOptions();
+		const auto getTitle = [&] {
+			if (!flags.dropNames) {
+				return "box/forward/forward";
+			} else if (!flags.dropCaptions) {
+				return "box/forward/copy";
+			} else {
+				return "box/forward/steal";
+			}
+		}();
+		box->peerListSetTitle(rktr(getTitle));
+	};
+
 	const auto state = [&] {
 		auto controller = std::make_unique<Controller>(
 			session,
@@ -3499,13 +3519,15 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 				== Data::ForwardOptions::NoNamesAndCaptions),
 		});
 		show->showBox(std::move(box));
+		updateTitle(boxRaw);
 		auto state = State{ boxRaw, controllerRaw };
 		return boxRaw->lifetime().make_state<State>(std::move(state));
 	}();
 
 	{ // Chosen a single.
-		auto chosen = [show, draft = std::move(draft)](
+		auto chosen = [show, state, draft = std::move(draft)](
 				not_null<Data::Thread*> thread) mutable {
+			draft.options = state->box->forwardOptionsData();
 			const auto peer = thread->peer();
 			if (peer->isSelf()
 				&& !draft.ids.empty()
@@ -3699,6 +3721,7 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 				state->box->forwardOptions(),
 				[=](Ui::ForwardOptions o) {
 					state->box->setForwardOptions(o);
+					updateTitle(state->box);
 				},
 				state->menu->lifetime());
 
@@ -3810,21 +3833,25 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		not_null<Window::SessionNavigation*> navigation,
 		Data::ForwardDraft &&draft,
-		Fn<void()> &&successCallback) {
+		Fn<void()> &&successCallback,
+		int steal) {
 	return ShowForwardMessagesBox(
 		navigation->uiShow(),
 		std::move(draft),
-		std::move(successCallback));
+		std::move(successCallback),
+		steal);
 }
 
 base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		not_null<Window::SessionNavigation*> navigation,
 		MessageIdsList &&items,
-		Fn<void()> &&successCallback) {
+		Fn<void()> &&successCallback,
+		int steal) {
 	return ShowForwardMessagesBox(
 		navigation,
 		Data::ForwardDraft{ .ids = std::move(items) },
-		std::move(successCallback));
+		std::move(successCallback),
+		steal);
 }
 
 base::weak_qptr<Ui::BoxContent> ShowShareGameBox(

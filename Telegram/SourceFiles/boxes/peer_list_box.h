@@ -364,6 +364,9 @@ struct PeerListState;
 
 class PeerListDelegate {
 public:
+	virtual rpl::producer<QString> peerListGetTitle() {
+		Unexpected("PeerListDelegate::peerListGetTitle");
+	}
 	virtual void peerListSetTitle(rpl::producer<QString> title) = 0;
 	virtual void peerListSetAdditionalTitle(rpl::producer<QString> title) = 0;
 	virtual void peerListSetHideEmpty(bool hide) = 0;
@@ -1203,7 +1206,11 @@ public:
 	[[nodiscard]] rpl::producer<int> multiSelectHeightValue() const;
 	[[nodiscard]] rpl::producer<> noSearchSubmits() const;
 
+	rpl::producer<QString> peerListGetTitle() override {
+		return rpl::duplicate(_title);
+	}
 	void peerListSetTitle(rpl::producer<QString> title) override {
+		_title = rpl::duplicate(title);
 		setTitle(std::move(title));
 	}
 	void peerListSetAdditionalTitle(rpl::producer<QString> title) override {
@@ -1265,6 +1272,8 @@ private:
 	void searchQueryChanged(const QString &query);
 	void refreshSectionIndex();
 	void updateSectionIndexGeometry();
+
+	rpl::producer<QString> _title;
 
 	object_ptr<Ui::SlideWrap<Ui::MultiSelect>> _select = { nullptr };
 	object_ptr<PeerListSectionIndex> _sectionIndex = { nullptr };

@@ -11,6 +11,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "chat_helpers/stickers_emoji_pack.h"
 #include "core/application.h"
 #include "core/file_utilities.h"
+#include "core/shortcuts.h"
 #include "core/click_handler_types.h"
 #include "core/phone_click_handler.h"
 #include "data/data_chat_participant_status.h"
@@ -509,6 +510,8 @@ HistoryInner::HistoryInner(
 	) | rpl::on_next([=] {
 		update();
 	}, lifetime());
+
+	setupShortcuts();
 
 	HistoryView::Reactions::SetupManagerList(
 		_reactionsManager.get(),
@@ -6500,6 +6503,38 @@ bool CanSendReply(not_null<const HistoryItem*> item) {
 		return channel->amIn();
 	}
 	return true;
+}
+
+void HistoryInner::setupShortcuts() {
+	Shortcuts::Requests(
+	) | rpl::filter([=] {
+		return Ui::AppInFocus()
+			   && Ui::InFocusChain(this)
+			   && !_controller->isLayerShown();
+	}) | rpl::on_next([=](not_null<Shortcuts::Request*> request) {
+		using Command = Shortcuts::Command;
+		request->check(Command::FastForward, 1) && request->handle([=] {
+			auto selectedState = getSelectionState();
+			if (selectedState.count > 0 && selectedState.canForwardCount == selectedState.count) {
+				_widget->forwardSelected(0);
+			}
+			return true;
+		});
+		request->check(Command::FastCopy, 1) && request->handle([=] {
+			auto selectedState = getSelectionState();
+			if (selectedState.count > 0 && selectedState.canForwardCount == selectedState.count) {
+				_widget->forwardSelected(1);
+			}
+			return true;
+		});
+		request->check(Command::FastSteal, 1) && request->handle([=] {
+			auto selectedState = getSelectionState();
+			if (selectedState.count > 0 && selectedState.canForwardCount == selectedState.count) {
+				_widget->forwardSelected(2);
+			}
+			return true;
+		});
+	}, lifetime());
 }
 
 // Accessibility.

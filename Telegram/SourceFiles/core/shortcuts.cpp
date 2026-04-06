@@ -144,6 +144,9 @@ const auto CommandByName = base::flat_map<QString, Command>{
 	{ u"record_round"_q                  , Command::RecordRound },
 	{ u"show_admin_log"_q                , Command::ShowAdminLog },
 	//
+	{ u"fast_forward"_q      , Command::FastForward },
+	{ u"fast_copy"_q         , Command::FastCopy },
+	{ u"fast_steal"_q        , Command::FastSteal },
 };
 
 const base::flat_map<Command, QString> &CommandNames() {
@@ -541,6 +544,10 @@ void Manager::fillDefaults() {
 	set(u"ctrl+]"_q                  , Command::ShowChatPreview);
 
 	set(u"ctrl+r"_q                  , Command::RecordVoice);
+
+	set(u"alt+f"_q, Command::FastForward);
+	set(u"alt+c"_q, Command::FastCopy);
+	set(u"alt+shift+c"_q, Command::FastSteal);
 
 	_defaults = keysCurrents();
 }

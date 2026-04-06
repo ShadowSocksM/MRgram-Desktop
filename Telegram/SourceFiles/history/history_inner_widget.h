@@ -537,6 +537,7 @@ private:
 	void blockSenderAsGroup(FullMsgId itemId);
 	void copySelectedText();
 	void editCaptionUploadLayer(not_null<HistoryItem*> item);
+	void setupShortcuts();
 
 	[[nodiscard]] auto reactionButtonParameters(
 		not_null<const Element*> view,
