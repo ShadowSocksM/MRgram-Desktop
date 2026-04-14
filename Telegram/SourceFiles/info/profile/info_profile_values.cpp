@@ -253,7 +253,7 @@ TextWithEntities AboutWithEntities(
 		|| (user && !isBot && !isPremium);
 	auto result = TextWithEntities{ value };
 	TextUtilities::ParseEntities(result, flags);
-	if (stripExternal) {
+	if (false && stripExternal) {
 		StripExternalLinks(result);
 	}
 	return result;
