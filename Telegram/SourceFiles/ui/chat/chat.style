@@ -589,6 +589,8 @@ msgNameDeletedIcon: icon {{ "dialogs/dialogs_sending", attentionButtonFg, point(
 msgNameDeletedIconSelected: icon {{ "dialogs/dialogs_sending", attentionButtonFgOver, point(4px, 4px) }};
 msgNameForumIcon: icon {{ "dialogs/dialogs_forum", historyPeer4NameFg, point(1px, 4px) }};
 msgNameForumIconSelected: icon {{ "dialogs/dialogs_forum", historyPeer4NameFgSelected, point(1px, 4px) }};
+msgNameUnofficialIcon: icon {{ "dialogs/mini_tag_lock", attentionButtonFg, point(1px, 1px) }};
+msgNameUnofficialIconSelected: icon {{ "dialogs/mini_tag_lock", attentionButtonFgOver, point(1px, 1px) }};
 
 historyGroupCallUserpics: GroupCallUserpics {
 	size: 32px;

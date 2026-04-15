@@ -432,6 +432,11 @@ std::optional<style::icon> ChatTypeIcon(HistoryItem *item, bool *shouldOverrideC
 				return st::msgNameDeletedIcon;
 			} else if (user->isBot() && !user->isSupport() && !user->isRepliesChat()) {
 				return st::msgNameBotIcon;
+			} else if (user->unofficialSecurityRisk()) {
+				if (shouldOverrideColor) {
+					*shouldOverrideColor = false;
+				}
+				return st::msgNameUnofficialIcon;
 			}
 		}
 	}
