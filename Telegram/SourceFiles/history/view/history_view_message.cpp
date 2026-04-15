@@ -61,6 +61,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "mainwidget.h"
 #include "main/main_session.h"
 #include "settings/sections/settings_premium.h"
+#include "yukigram/settings/history_peer_type_icons.h"
 #include "ui/text/text_options.h"
 #include "ui/painter.h"
 #include "window/themes/window_theme.h" // IsNightMode.
@@ -408,6 +409,34 @@ void ApplyRevealGradient(
 			appearing->gradientMask);
 	}
 }
+
+std::optional<style::icon> ChatTypeIcon(HistoryItem *item, bool *shouldOverrideColor = nullptr) {
+	if (!Yukigram::Settings::HistoryPeerTypeIcons->current()) {
+		return {};
+	}
+	if (shouldOverrideColor) {
+		*shouldOverrideColor = true;
+	}
+	if (!item->isPost() && item->displayFrom()) {
+		const auto from = item->displayFrom();
+		if (from->isChat()) {
+			return st::msgNameChatIcon;
+		} else if (from->isForum()) {
+			return st::msgNameForumIcon;
+		} else if (from->isMegagroup()) {
+			return st::msgNameChatIcon;
+		} else if (from->isBroadcast()) {
+			return st::msgNameChannelIcon;
+		} else if (const auto user = from->asUser()) {
+			if (user->isInaccessible()) {
+				return st::msgNameDeletedIcon;
+			} else if (user->isBot() && !user->isSupport() && !user->isRepliesChat()) {
+				return st::msgNameBotIcon;
+			}
+		}
+	}
+	return {};
+};
 
 struct SecondRightAction {
 	std::unique_ptr<Ui::RippleAnimation> ripple;
@@ -1542,6 +1571,9 @@ QSize Message::performCountOptimalSize() {
 				if (Has<RightBadge>()) {
 					namew += st::msgPadding.right() + rightBadgeWidth();
 				}
+				if (const auto icon = ChatTypeIcon(item)) {
+					namew += icon->width() + st::dialogsChatTypeSkip;
+				}
 				accumulate_max(maxWidth, namew);
 				accumulate_max(nonTextMax, namew);
 			} else if (via && !displayForwardedFrom()) {
@@ -2521,6 +2553,19 @@ void Message::paintFromName(
 		context,
 		colorIndex(),
 		colorCollectible());
+
+	bool shouldOverrideColor = false;
+	if (const auto icon = ChatTypeIcon(item, &shouldOverrideColor)) {
+		const auto point = QPoint(availableLeft, trect.top());
+		if (shouldOverrideColor) {
+			icon->paint(p, point, availableWidth, nameFg);
+		} else {
+			icon->paint(p, point, availableWidth);
+		}
+		availableLeft += icon->width() + st::dialogsChatTypeSkip;
+		availableWidth -= icon->width() + st::dialogsChatTypeSkip;
+	}
+
 	const auto nameText = [&] {
 		if (from) {
 			validateFromNameText(from);
@@ -4228,6 +4273,8 @@ bool Message::getStateFromName(
 			availableWidth -= st::msgPadding.right() + badgeWidth;
 		}
 		const auto item = data();
+		const auto chatIcon = ChatTypeIcon(item);
+		const auto chatIconWidth = chatIcon ? chatIcon->width() + st::dialogsChatTypeSkip : 0;
 		const auto from = displayFrom();
 		const auto nameText = [&]() -> const Ui::Text::String * {
 			if (from) {
@@ -4271,7 +4318,7 @@ bool Message::getStateFromName(
 		}
 		if (point.x() >= availableLeft
 			&& point.x() < availableLeft + availableWidth
-			&& point.x() < availableLeft + nameWidth) {
+			&& point.x() < availableLeft + nameWidth + chatIconWidth) {
 			outResult->link = fromLink();
 			recordLinkRipplePoint(point, trect.topLeft());
 			_fromLinkRipplePointSet = 1;

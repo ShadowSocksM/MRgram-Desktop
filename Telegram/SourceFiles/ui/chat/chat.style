@@ -579,6 +579,17 @@ historyAudioRadialLine: 2px;
 historyAudioDownloadShift: 28px;
 
 
+msgNameBotIcon: icon {{ "dialogs/dialogs_bot", historyPeer4NameFg, point(1px, 3px) }};
+msgNameBotIconSelected: icon {{ "dialogs/dialogs_bot", historyPeer4NameFgSelected, point(1px, 3px) }};
+msgNameChatIcon: icon {{ "dialogs/dialogs_chat", historyPeer4NameFg, point(1px, 4px) }};
+msgNameChatIconSelected: icon {{ "dialogs/dialogs_chat", historyPeer4NameFgSelected, point(1px, 4px) }};
+msgNameChannelIcon: icon {{ "dialogs/dialogs_channel", historyPeer4NameFg, point(3px, 4px) }};
+msgNameChannelIconSelected: icon {{ "dialogs/dialogs_channel", historyPeer4NameFgSelected, point(3px, 4px) }};
+msgNameDeletedIcon: icon {{ "dialogs/dialogs_sending", attentionButtonFg, point(4px, 4px) }};
+msgNameDeletedIconSelected: icon {{ "dialogs/dialogs_sending", attentionButtonFgOver, point(4px, 4px) }};
+msgNameForumIcon: icon {{ "dialogs/dialogs_forum", historyPeer4NameFg, point(1px, 4px) }};
+msgNameForumIconSelected: icon {{ "dialogs/dialogs_forum", historyPeer4NameFgSelected, point(1px, 4px) }};
+
 historyGroupCallUserpics: GroupCallUserpics {
 	size: 32px;
 	shift: 12px;
