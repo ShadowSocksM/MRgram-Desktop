@@ -1942,9 +1942,7 @@ void ApiWrap::joinChannel(not_null<ChannelData*> channel) {
 
 		_channelAmInRequests.emplace(channel, requestId);
 
-		using Flag = ChannelDataFlag;
 		chatParticipants().loadSimilarPeers(channel);
-		channel->setFlags(channel->flags() | Flag::SimilarExpanded);
 	}
 }
 
