@@ -6674,7 +6674,7 @@ bool HistoryWidget::isBlocked() const {
 
 bool HistoryWidget::isJoinChannel() const {
 	if (const auto channel = _peer ? _peer->asChannel() : nullptr) {
-		return !channel->amIn() && !channel->isMonoforum();
+		return !channel->amIn() && !channel->isMonoforum() && !_canSendMessages;
 	}
 	return false;
 }
