@@ -2194,6 +2194,9 @@ PRIVATE
     tray.h
 )
 
+file(GLOB_RECURSE yuki_src CONFIGURE_DEPENDS "${src_loc}/yukigram/*.cpp" "${src_loc}/yukigram/*.h")
+target_sources(Telegram PRIVATE ${yuki_src})
+
 if (APPLE)
     nice_target_sources(Telegram ${src_loc}
     PRIVATE
