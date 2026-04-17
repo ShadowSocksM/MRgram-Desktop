@@ -17,6 +17,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "storage/localstorage.h"
 #include "storage/storage_account.h"
 #include "storage/storage_user_photos.h"
+#include "yukigram/settings/hide_wall_paper.h"
 #include "main/main_session.h"
 #include "data/business/data_business_common.h"
 #include "data/business/data_business_info.h"
@@ -999,7 +1000,7 @@ void ApplyUserUpdate(not_null<UserData*> user, const MTPDuserFull &update) {
 		}
 	}
 
-	if (const auto paper = update.vwallpaper()) {
+	if (const auto paper = update.vwallpaper(); paper && !Yukigram::Settings::HideWallPaper->current()) {
 		user->setWallPaper(
 			Data::WallPaper::Create(&user->session(), *paper),
 			update.is_wallpaper_overridden());

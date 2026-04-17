@@ -29,6 +29,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/notify/data_notify_settings.h"
 #include "main/main_session.h"
 #include "main/session/send_as_peers.h"
+#include "yukigram/settings/hide_wall_paper.h"
 #include "base/unixtime.h"
 #include "core/application.h"
 #include "history/history.h"
@@ -1550,7 +1551,7 @@ void ApplyChannelUpdate(
 		session->sendAsPeers().setChosen(channel, PeerId());
 	}
 
-	if (const auto paper = update.vwallpaper()) {
+	if (const auto paper = update.vwallpaper(); paper && !Yukigram::Settings::HideWallPaper->current()) {
 		channel->setWallPaper(
 			Data::WallPaper::Create(&channel->session(), *paper));
 	} else {
