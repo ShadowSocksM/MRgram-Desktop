@@ -993,7 +993,12 @@ void TopBar::setupActions(not_null<Window::SessionController*> controller) {
 		addMore();
 		finalizeActions(buttons);
 	});
-	if (user) {
+	bool showHistoryDone = false;
+	const auto addShowHistory = [&]() {
+		if (showHistoryDone) {
+			return;
+		}
+		showHistoryDone = true;
 		const auto message = Ui::CreateChild<TopBarActionButton>(
 			this,
 			tr::lng_profile_action_short_message(tr::now),
@@ -1006,6 +1011,9 @@ void TopBar::setupActions(not_null<Window::SessionController*> controller) {
 		message->setAccessibleName(tr::lng_profile_action_short_message(tr::now));
 		buttons.push_back(message);
 		_actions->add(message);
+	};
+	if (user) {
+		addShowHistory();
 	}
 	const auto canJoin = (!sublist && !topic && channel && !channel->amIn());
 	if (canJoin) {
@@ -1211,6 +1219,14 @@ void TopBar::setupActions(not_null<Window::SessionController*> controller) {
 			_actions->add(giftButton);
 			buttons.push_back(giftButton);
 		}
+	}
+	if (chechMax()) {
+		return;
+	}
+	if (const auto current = controller->activeChatCurrent().peer();
+		(current && _peer->id != current->id)
+		|| controller->dialogsEntryStateCurrent().section == Dialogs::EntryState::Section::Replies) {
+		addShowHistory();
 	}
 	if (chechMax()) {
 		return;
