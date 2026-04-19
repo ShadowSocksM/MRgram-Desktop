@@ -10,6 +10,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "dialogs/dialogs_key.h"
 #include "dialogs/dialogs_indexed_list.h"
 #include "base/options.h"
+#include "dialogs/ui/dialogs_layout.h"
 #include "base/unixtime.h"
 #include "data/data_changes.h"
 #include "data/data_session.h"
@@ -22,6 +23,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "mainwidget.h"
 #include "main/main_session.h"
 #include "main/main_session_settings.h"
+#include "yukigram/settings/compact_chat_list.h"
 #include "ui/text/format_values.h"
 #include "ui/text/text_options.h"
 #include "ui/ui_utility.h"
@@ -525,6 +527,9 @@ void Entry::updateChatListEntryHeight() {
 }
 
 bool Entry::hasChatsFilterTags(FilterId exclude) const {
+	if (Yukigram::Settings::CompactChatList->current()) {
+		return false;
+	}
 	if (!owner().chatsFilters().tagsEnabled()) {
 		return false;
 	}

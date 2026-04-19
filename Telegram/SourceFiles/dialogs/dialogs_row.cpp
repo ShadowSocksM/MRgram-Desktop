@@ -20,6 +20,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/text/text_options.h"
 #include "ui/text/text_utilities.h"
 #include "ui/painter.h"
+#include "yukigram/settings/compact_chat_list.h"
 #include "dialogs/dialogs_entry.h"
 #include "dialogs/ui/dialogs_video_userpic.h"
 #include "dialogs/ui/dialogs_layout.h"
@@ -406,6 +407,9 @@ Row::~Row() {
 const style::DialogRow &Row::ComputeSt(
 		not_null<const Entry*> entry,
 		FilterId filterId) {
+	if (Yukigram::Settings::CompactChatList->current()) {
+		return st::compactDialogRow;
+	}
 	if (const auto history = entry->asHistory()) {
 		const auto hasTags = entry->hasChatsFilterTags(filterId);
 		const auto wideRow = history->peer->displayAsForum()
@@ -678,7 +682,7 @@ void Row::PaintCornerBadgeFrame(
 		: st::dialogsCallBadgeSize;
 	const auto stroke = st::dialogsOnlineBadgeStroke;
 	const auto skip = online
-		? st::dialogsOnlineBadgeSkip
+		? (Yukigram::Settings::CompactChatList->current() ? QPoint() : st::dialogsOnlineBadgeSkip)
 		: st::dialogsCallBadgeSkip;
 	const auto shrink = (size / 2) * (1. - topLayerProgress);
 
@@ -785,7 +789,8 @@ void Row::paintUserpic(
 	const auto limit = Ui::kOutlineSegmentsMax;
 	const auto storiesCount = std::min(storiesCountReal, limit);
 	const auto storiesUnreadCount = std::min(storiesUnreadCountReal, limit);
-	if (_cornerBadgeUserpic->frame.size() != frameSize) {
+	const auto frameSizeChanged = _cornerBadgeUserpic->frame.size() != frameSize;
+	if (frameSizeChanged) {
 		_cornerBadgeUserpic->frame = QImage(
 			frameSize,
 			QImage::Format_ARGB32_Premultiplied);
@@ -817,6 +822,7 @@ void Row::paintUserpic(
 	const auto activeMatters = storiesCount
 		|| !(subscribed || communityMember);
 	if (keyChanged
+		|| frameSizeChanged
 		|| !_cornerBadgeUserpic->layersManager.isFinished()
 		|| (activeMatters && _cornerBadgeUserpic->active != active)
 		|| _cornerBadgeUserpic->hidden != (hidden ? 1 : 0)

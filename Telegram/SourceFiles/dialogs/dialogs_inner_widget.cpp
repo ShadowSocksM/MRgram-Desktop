@@ -39,6 +39,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/rect.h"
 #include "ui/screen_reader_mode.h"
 #include "ui/ui_utility.h"
+#include "yukigram/settings/compact_chat_list.h"
 #include "data/components/sponsored_messages.h"
 #include "data/data_drafts.h"
 #include "data/data_folder.h"
@@ -397,6 +398,7 @@ InnerWidget::InnerWidget(
 	Ui::ScheduleThanosEffectWarmUp(&session(), lifetime());
 
 	rpl::merge(
+		Yukigram::Settings::CompactChatList->changes() | rpl::map_to(true),
 		session().settings().archiveCollapsedChanges() | rpl::map_to(false),
 		session().data().chatsFilters().changed() | rpl::map_to(true),
 		session().data().chatsFilters().tagsEnabledChanges(
@@ -1066,7 +1068,9 @@ void InnerWidget::paintEvent(QPaintEvent *e) {
 			}
 		}
 
+	if (!Yukigram::Settings::CompactChatList->current()) {
 		context.st = (forum || monoforum) ? &st::forumDialogRow : _st.get();
+	}
 
 		const auto videoUserpic = validateVideoUserpic(row);
 		const auto cacheRatio = style::DevicePixelRatio();
@@ -2078,7 +2082,7 @@ void InnerWidget::performDrag() {
 			('@' + u).toUtf8());
 	}
 
-	const auto &st = st::defaultDialogRow;
+	const auto &st = (Yukigram::Settings::CompactChatList->current() ? st::defaultDialogRow : st::compactDialogRow);
 	auto pixmap = QPixmap(Size(st.height * style::DevicePixelRatio()));
 	pixmap.setDevicePixelRatio(style::DevicePixelRatio());
 	pixmap.fill(Qt::transparent);
@@ -6049,7 +6053,7 @@ void InnerWidget::repaintDialogRowCornerStatus(not_null<History*> history) {
 		: st::dialogsCallBadgeSize;
 	const auto stroke = st::dialogsOnlineBadgeStroke;
 	const auto skip = user
-		? st::dialogsOnlineBadgeSkip
+		? (Yukigram::Settings::CompactChatList->current() ? QPoint() : st::dialogsOnlineBadgeSkip)
 		: st::dialogsCallBadgeSkip;
 	const auto updateRect = QRect(
 		_st->photoSize - skip.x() - size,

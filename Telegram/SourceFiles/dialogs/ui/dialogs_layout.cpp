@@ -20,6 +20,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_thread.h"
 #include "data/data_user.h"
 #include "data/stickers/data_custom_emoji.h"
+#include "yukigram/settings/compact_chat_list.h"
 #include "dialogs/dialogs_list.h"
 #include "dialogs/dialogs_three_state_icon.h"
 #include "dialogs/dialogs_quick_action.h"
@@ -117,7 +118,7 @@ int PaintRightButtonImpl(QPainter &p, const PaintContext &context) {
 		const auto left = context.width
 			- size.width()
 			- rightButton->st->margin.right();
-		const auto top = rightButton->st->margin.top();
+		const auto top = (Yukigram::Settings::CompactChatList->current() ? st::defaultDialogRow.padding.top() : rightButton->st->margin.top());
 		p.drawImage(
 			left,
 			top,
@@ -440,6 +441,7 @@ template <typename PaintItemCallback>
 void PaintRow(
 		Painter &p,
 		not_null<const BasicRow*> row,
+		bool isFullRow,
 		QRect geometry,
 		not_null<Entry*> entry,
 		VideoUserpic *videoUserpic,
@@ -451,11 +453,23 @@ void PaintRow(
 		HistoryItem *item,
 		const Data::Draft *draft,
 		TimeId date,
-		const PaintContext &context,
+		const PaintContext &in_context,
 		const FakeRow *fakeRow,
 		BadgesState badgesState,
 		base::flags<Flag> flags,
 		PaintItemCallback &&paintItemCallback) {
+	bool useFullRow = !Yukigram::Settings::CompactChatList->current()
+		|| in_context.narrow
+		|| isFullRow
+		|| entry->asFolder();
+	const auto context = [useFullRow, in_context] {
+		auto context = in_context;
+		if (!useFullRow) {
+			context.st = &st::compactDialogRow;
+		}
+		return context;
+	}();
+
 	const auto supportMode = entry->session().supportMode();
 	if (supportMode) {
 		draft = nullptr;
@@ -605,6 +619,7 @@ void PaintRow(
 				+ st::dialogsChatTypeSkip);
 		}
 	}
+if (useFullRow) {
 	auto texttop = context.st->textTop;
 	if (const auto folder = entry->asFolder()) {
 		const auto availableWidth = PaintWideCounter(
@@ -822,6 +837,10 @@ void PaintRow(
 			texttop,
 			context.width);
 	}
+} else {
+	const auto displayPinnedIcon = badgesState.empty() && entry->isPinnedDialog(context.filter) && (context.filter || !entry->fixedOnTopIndex());
+	rectForName.setWidth(PaintWideCounter(p, context, badgesState, rectForName.top(), rectForName.width(), displayPinnedIcon));
+}
 	const auto sendStateIcon = [&]() -> const style::icon* {
 		if (!thread) {
 			return nullptr;
@@ -1249,6 +1268,7 @@ void RowPainter::Paint(
 	PaintRow(
 		p,
 		row,
+		sublist || row->topic(),
 		QRect(0, 0, context.width, row->height()),
 		entry,
 		videoUserpic,
@@ -1361,6 +1381,7 @@ void RowPainter::Paint(
 	PaintRow(
 		p,
 		row,
+		true,
 		QRect(0, 0, context.width, context.st->height),
 		entry,
 		nullptr,
