@@ -20,6 +20,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/concurrent_timer.h"
 #include "base/options.h"
 #include "yukigram/appid.h"
+#include "yukigram/options_runtime.h"
 
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QStandardPaths>
@@ -397,6 +398,7 @@ int Launcher::exec() {
 	// Must be started before Platform is started.
 	Logs::start();
 	base::options::init(cWorkingDir() + "tdata/experimental_options.json");
+	Yukigram::Options::init();
 
 	// Must be called after options are inited.
 	initHighDpi();
@@ -676,6 +678,7 @@ void Launcher::processArguments() {
 int Launcher::executeApplication() {
 	FilteredCommandLineArguments arguments(_argc, _argv);
 	Sandbox sandbox(arguments.count(), arguments.values());
+	Yukigram::Options::link(); // call after QApplication init
 	Ui::MainQueueProcessor processor;
 	base::ConcurrentTimerEnvironment environment;
 	return sandbox.start();

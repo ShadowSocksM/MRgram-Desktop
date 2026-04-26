@@ -6,6 +6,7 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "settings/settings_experimental.h"
+#include "yukigram/options_runtime.h"
 
 #include "settings/settings_common.h"
 #include "data/components/passkeys.h"
@@ -256,6 +257,7 @@ QString AddOption(
 			return;
 		}
 		option.set(toggled);
+		Yukigram::Options::update_value(option.id().toStdString().c_str(), toggled);
 		if (restarter) {
 			restarter->callOnce(st::settingsButtonNoIcon.toggle.duration);
 		}
