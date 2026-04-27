@@ -17,6 +17,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/ui_utility.h"
 #include "ui/widgets/popup_menu.h"
 #include "window/window_controller.h"
+#include "yukigram/settings/icon_theme_symbolic.h"
 
 #include <QtCore/QCoreApplication>
 #include <QtWidgets/QMenu>
@@ -30,7 +31,8 @@ namespace {
 using namespace gi::repository;
 
 [[nodiscard]] QString PanelIconName(int counter, bool muted) {
-	return ApplicationIconName() + ((counter > 0)
+	const auto name = Yukigram::Settings::IconThemeSymbolic->current() ? "org.telegram.desktop" : ApplicationIconName();
+	return name + ((counter > 0)
 		? (muted
 			? u"-mute"_q
 			: u"-attention"_q)
@@ -52,6 +54,7 @@ private:
 	struct State {
 		QIcon systemIcon;
 		QString iconThemeName;
+		bool iconThemeSymbolic = false;
 		bool monochrome = false;
 		int32 counter = 0;
 		bool muted = false;
@@ -80,6 +83,7 @@ IconGraphic::~IconGraphic() = default;
 
 QIcon IconGraphic::systemIcon() const {
 	if (_new.iconThemeName == _current.iconThemeName
+		&& _new.iconThemeSymbolic == _current.iconThemeSymbolic
 		&& _new.monochrome == _current.monochrome
 		&& (_new.counter > 0) == (_current.counter > 0)
 		&& _new.muted == _current.muted) {
@@ -122,6 +126,7 @@ QSize IconGraphic::dprSize(const QImage &image) const {
 
 void IconGraphic::updateState() {
 	_new.iconThemeName = QIcon::themeName();
+	_new.iconThemeSymbolic = Yukigram::Settings::IconThemeSymbolic->current();
 	_new.monochrome = Core::App().settings().trayIconMonochrome();
 	_new.counter = Core::App().unreadBadge();
 	_new.muted = Core::App().unreadBadgeMuted();
@@ -131,6 +136,7 @@ void IconGraphic::updateState() {
 bool IconGraphic::isRefreshNeeded() const {
 	return _trayIcon.isNull()
 		|| _new.iconThemeName != _current.iconThemeName
+		|| _new.iconThemeSymbolic != _current.iconThemeSymbolic
 		|| _new.systemIcon.name() != _current.systemIcon.name()
 		|| (isCounterNeeded(_new)
 			? _new.muted != _current.muted
@@ -160,6 +166,7 @@ QIcon IconGraphic::trayIcon() {
 
 		if (currentImageBack.isNull()
 			|| _new.iconThemeName != _current.iconThemeName
+			|| _new.iconThemeSymbolic != _current.iconThemeSymbolic
 			|| _new.systemIcon.name() != _current.systemIcon.name()) {
 			currentImageBack = {};
 
@@ -273,6 +280,10 @@ Tray::Tray() {
 				});
 			});
 	}
+
+	Yukigram::Settings::IconThemeSymbolic->changes() | rpl::on_next([&] {
+		updateIcon();
+	}, _lifetime);
 }
 
 void Tray::createIcon() {
