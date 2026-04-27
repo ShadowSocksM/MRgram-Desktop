@@ -64,6 +64,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/controls/silent_toggle.h"
 #include "ui/screen_reader_mode.h"
 #include "ui/ui_utility.h"
+#include "yukigram/settings/hide_send_as.h"
 #include "inline_bots/inline_bot_result.h"
 #include "base/event_filter.h"
 #include "base/options.h"
@@ -3977,6 +3978,14 @@ void HistoryWidget::refreshSuggestPostToggle() {
 }
 
 void HistoryWidget::setupSendAsToggle() {
+	Yukigram::Settings::HideSendAs->changes(
+	) | rpl::on_next([=] {
+		refreshSendAsToggle();
+		updateControlsVisibility();
+		updateControlsGeometry();
+		orderWidgets();
+	}, lifetime());
+
 	session().sendAsPeers().updated(
 	) | rpl::filter([=](Main::SendAsKey key) {
 		return (key.peer == _peer)
@@ -3993,7 +4002,7 @@ void HistoryWidget::refreshSendAsToggle() {
 	Expects(_peer != nullptr);
 
 	const auto key = Main::SendAsKey{ _peer, Main::SendAsType::Message };
-	if (_editMsgId || !session().sendAsPeers().shouldChoose(key)) {
+	if (Yukigram::Settings::HideSendAs->current() || _editMsgId || !session().sendAsPeers().shouldChoose(key)) {
 		_sendAs.destroy();
 		return;
 	} else if (_sendAs) {
