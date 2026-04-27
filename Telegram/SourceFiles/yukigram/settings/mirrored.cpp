@@ -1,0 +1,68 @@
+#include "yukigram/options.h"
+#include "chat_helpers/tabbed_panel.h"
+#include "chat_helpers/stickers_list_widget.h"
+#include "dialogs/dialogs_widget.h"
+#include "info/profile/info_profile_actions.h"
+#include "mainwidget.h"
+#include "window/window_peer_menu.h"
+#include "ui/chat/chat_style_radius.h"
+#include "ui/widgets/kinetic_scroller.h"
+
+namespace Yukigram::Settings {
+
+rpl::variable<bool> *TabbedPanelShowOnClick = Yukigram::Options::make<bool>(ChatHelpers::kOptionTabbedPanelShowOnClick, {
+	.keywords = { u"yukigram"_q, u"experimental"_q, u"tabbed"_q, u"panel"_q, u"stickers"_q, u"gifs"_q, u"emoji"_q, u"hover"_q },
+	.category = "picker",
+	.mirrorExperimental = true,
+});
+
+rpl::variable<bool> *UnlimitedRecentStickers = Yukigram::Options::make<bool>(ChatHelpers::kOptionUnlimitedRecentStickers, {
+	.keywords = { u"yukigram"_q, u"experimental"_q, u"stickers"_q, u"limit"_q, u"unlimited"_q },
+	.category = "picker",
+	.mirrorExperimental = true,
+});
+
+rpl::variable<bool> *ForumHideChatsList = Yukigram::Options::make<bool>(Dialogs::kOptionForumHideChatsList, {
+	.keywords = { u"yukigram"_q, u"experimental"_q, u"forums"_q, u"chat list"_q, u"column"_q },
+	.category = "dialogs",
+	.mirrorExperimental = true,
+});
+
+rpl::variable<bool> *ShowPeerIdBelowAbout = Yukigram::Options::make<bool>(Info::Profile::kOptionShowPeerIdBelowAbout, {
+	.keywords = { u"yukigram"_q, u"experimental"_q, u"peer"_q, u"id"_q },
+	.category = "info",
+	.mirrorExperimental = true,
+});
+
+rpl::variable<bool> *ShowChannelJoinedBelowAbout = Yukigram::Options::make<bool>(Info::Profile::kOptionShowChannelJoinedBelowAbout, {
+	.keywords = { u"yukigram"_q, u"experimental"_q, u"channel"_q, u"join"_q, u"date"_q },
+	.category = "info",
+	.mirrorExperimental = true,
+});
+
+rpl::variable<bool> *ForceComposeSearchOneColumn = Yukigram::Options::make<bool>(kForceComposeSearchOneColumn, {
+	.keywords = { u"yukigram"_q, u"experimental"_q, u"embedded"_q, u"search"_q, u"chat"_q, u"column"_q, u"layout"_q, u"mobile"_q, u"phone"_q },
+	.category = "interface",
+	.mirrorExperimental = true,
+});
+
+rpl::variable<bool> *ViewProfileInChatsListContextMenu = Yukigram::Options::make<bool>(Window::kOptionViewProfileInChatsListContextMenu, {
+	.keywords = { u"yukigram"_q, u"experimental"_q, u"profile"_q, u"chat list"_q, u"context"_q, u"menu"_q },
+	.category = "dialogs",
+	.mirrorExperimental = true,
+});
+
+rpl::variable<bool> *UseSmallMsgBubbleRadius = Yukigram::Options::make<bool>(Ui::kOptionUseSmallMsgBubbleRadius, {
+	.keywords = { u"yukigram"_q, u"experimental"_q, u"round"_q, u"radius"_q, u"corner"_q, u"bubble"_q },
+	.category = "style",
+	.restartRequired = true,
+	.mirrorExperimental = true,
+});
+
+rpl::variable<bool> *QScroller = Yukigram::Options::make<bool>(Ui::kOptionKineticScroller, {
+	.keywords = { u"yukigram"_q, u"experimental"_q, u"kinetic"_q, u"qscroller"_q },
+	.category = "interface",
+	.mirrorExperimental = true,
+});
+
+}
