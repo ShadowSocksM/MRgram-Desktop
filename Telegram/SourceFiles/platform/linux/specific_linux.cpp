@@ -687,17 +687,32 @@ QString ExecutablePathForShortcuts() {
 } // namespace Platform
 
 QString psAppDataPath() {
+	const auto hasPreviousProfileAt = [](QString path) {
+		if (Yukigram::Devel) {
+			return false; // Disable previous profile fallback on devel versions.
+		}
+		auto oldSettingsBase = path + u"tdata/settings"_q;
+		if (QFile::exists(oldSettingsBase + '0')
+			|| QFile::exists(oldSettingsBase + '1')
+			|| QFile::exists(oldSettingsBase + 's')) {
+			return true;
+		}
+		return false;
+	};
+
 	// Previously we used ~/.TelegramDesktop, so look there first.
 	// If we find data there, we should still use it.
 	auto home = QDir::homePath();
 	if (!home.isEmpty()) {
 		auto oldPath = home + u"/.TelegramDesktop/"_q;
-		auto oldSettingsBase = oldPath + u"tdata/settings"_q;
-		if (QFile::exists(oldSettingsBase + '0')
-			|| QFile::exists(oldSettingsBase + '1')
-			|| QFile::exists(oldSettingsBase + 's')) {
+		if (hasPreviousProfileAt(oldPath)) {
 			return oldPath;
 		}
+	}
+
+	const auto prevPath = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/Yukigram/";
+	if (hasPreviousProfileAt(prevPath)) {
+		return prevPath;
 	}
 
 	return QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) + '/';
