@@ -11,6 +11,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_channel.h"
 #include "data/data_session.h"
 #include "data/data_changes.h"
+#include "yukigram/settings/hide_send_as_premium.h"
 #include "main/main_session.h"
 #include "apiwrap.h"
 
@@ -165,10 +166,12 @@ void SendAsPeers::request(SendAsKey key) {
 				const auto &data = as.data();
 				const auto peerId = peerFromMTP(data.vpeer());
 				if (const auto peer = owner.peerLoaded(peerId)) {
+				if (!Yukigram::Settings::HideSendAsPremium->current() || !data.is_premium_required()) {
 					parsed.push_back({
 						.peer = peer,
 						.premiumRequired = data.is_premium_required(),
 					});
+				}
 				}
 			}
 		});
