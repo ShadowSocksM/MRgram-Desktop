@@ -35,6 +35,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/settings/info_settings_widget.h"
 #include "info/stories/info_stories_widget.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "ui/boxes/peer_qr_box.h"
 #include "ui/layers/generic_box.h"
 #include "main/main_domain.h"
@@ -72,6 +73,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "settings/sections/settings_privacy_security.h"
 #include "settings/sections/settings_shortcuts.h"
 #include "settings/sections/settings_websites.h"
+#include "settings/sections/settings_yukigram.h"
+#include "yukigram/options_database.h"
 #include "boxes/connection_box.h"
 #include "mainwindow.h"
 #include "window/window_controller.h"
@@ -2093,6 +2096,43 @@ void RegisterSettingsHandlers(Router &router) {
 			::Settings::NotificationsId(),
 			u"notifications/events/pinned"_q,
 		},
+	});
+
+	// Yukigram settings deep links
+	router.add(u"settings"_q, {
+		.path = u"yukigram"_q,
+		.action = SettingsSection{ ::Settings::YukigramId() },
+	});
+	for (auto &[category, _] : Yukigram::Options::ByCategory()) {
+		const auto path = u"yukigram/%1"_q.arg(category);
+		router.add(u"settings"_q, {
+			.path = path,
+			.action = SettingsControl{
+				::Settings::YukigramId(),
+				path,
+			}
+		});
+	}
+	for (auto &[key, _] : Yukigram::Options::Options()) {
+		const auto path = u"yukigram/%1"_q.arg(key);
+		router.add(u"settings"_q, {
+			.path = path,
+			.action = SettingsControl{
+				::Settings::YukigramId(),
+				path,
+			}
+		});
+	}
+	router.add(u"settings"_q, {
+		.path = u"inu"_q,
+		.action = CodeBlock { [](const Context &ctx) {
+			if (!ctx.controller) {
+				return Result::NeedsAuth;
+			}
+			ctx.controller->showToast(ktre("settings/for-inu/text",
+				{ "inu_link", Ui::Text::Link(ktr("settings/for-inu/inu"), "https://github.com/teidesu/inugram/") }));
+			return Result::Handled;
+		}},
 	});
 
 	router.add(u"settings"_q, {

@@ -14,6 +14,7 @@
 #include "ui/toast/toast.h"
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/fields/input_field.h"
+#include "ui/widgets/popup_menu.h"
 #include "ui/wrap/vertical_layout.h"
 #include "window/section_widget.h"
 #include "window/window_session_controller.h"
@@ -195,6 +196,21 @@ void BuildRow(SectionBuilder &builder, Yukigram::Options::Option<T> &o) {
 	if (!controller) {
 		return;
 	}
+
+	const auto link = u"tg://settings/yukigram/%1"_q.arg(o.key);
+	const auto menu = button->lifetime().template make_state<base::unique_qptr<Ui::PopupMenu>>();
+	button->events(
+	) | rpl::filter([](not_null<QEvent*> e) {
+		return e->type() == QEvent::ContextMenu;
+	}) | rpl::on_next([=](not_null<QEvent*> e) {
+		*menu = base::make_unique_q<Ui::PopupMenu>(button, st::popupMenuWithIcons);
+		(*menu)->addAction(ktr("settings/yukigram/deep-link/copy"), [=] {
+			TextUtilities::SetClipboardText({ link });
+			controller->showToast(ktr("settings/yukigram/deep-link/copy/done"));
+		}, &st::menuIconCopy);
+		(*menu)->popup(QCursor::pos());
+		e->accept();
+	}, button->lifetime());
 
 	if constexpr (std::is_same_v<T, bool>) {
 		auto v = o.v;
