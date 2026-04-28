@@ -1925,6 +1925,7 @@ void Filler::fillHistoryActions() {
 	addInfo();
 	addViewAsTopics();
 	addManageChat();
+	addViewStatistics();
 	addStoryArchive();
 	addSupportInfo();
 	addBoostChat();
