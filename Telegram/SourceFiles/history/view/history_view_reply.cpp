@@ -35,6 +35,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/painter.h"
 #include "ui/power_saving.h"
 #include "window/window_session_controller.h"
+#include "yukigram/settings/hide_reply_background_emoji.h"
 #include "styles/style_chat.h"
 #include "styles/style_dialogs.h"
 #include "styles/style_polls.h"
@@ -292,6 +293,9 @@ void FillBackgroundEmoji(
 		bool quote,
 		const Ui::BackgroundEmojiCache &cache,
 		const QImage &firstGiftFrame) {
+	if (Yukigram::Settings::HideReplyBackgroundEmoji->current()) {
+		return;
+	}
 	p.setClipRect(rect);
 
 	const auto &frames = cache.frames;
