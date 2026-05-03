@@ -40,6 +40,26 @@ namespace Window {
 class SessionController;
 } // namespace Window
 
+class ContactRow final : public PeerListRow {
+public:
+	ContactRow(not_null<UserData*> user);
+
+	QSize rightActionSize() const override;
+	QMargins rightActionMargins() const override;
+	bool rightActionDisabled() const override;
+	void rightActionPaint(
+		Painter &p,
+		int x,
+		int y,
+		int outerWidth,
+		bool selected,
+		bool actionSelected) override;
+
+private:
+	bool _isMutual = false;
+
+};
+
 [[nodiscard]] object_ptr<Ui::BoxContent> PrepareContactsBox(
 	not_null<Window::SessionController*> sessionController);
 [[nodiscard]] QBrush PeerListStoriesGradient(const style::PeerList &st);

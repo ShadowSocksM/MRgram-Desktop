@@ -72,6 +72,42 @@ Data::CommunityInfo *JoinedCommunityChats(not_null<PeerData*> peer) {
 	return (info && !info->histories().empty()) ? info : nullptr;
 }
 
+ContactRow::ContactRow(
+	not_null<UserData*> user)
+: PeerListRow(user)
+, _isMutual(user->flags() & UserDataFlag::MutualContact) {
+}
+
+QSize ContactRow::rightActionSize() const {
+	return QSize(
+		st::menuIconGroups.width(),
+		st::menuIconGroups.height());
+}
+
+QMargins ContactRow::rightActionMargins() const {
+	return QMargins(
+		st::contactsCheckPosition.x(),
+		(st::contactsPadding.top() + st::contactsPhotoSize + st::contactsPadding.bottom() - rightActionSize().height()) / 2,
+		st::defaultPeerListItem.photoPosition.x() + st::contactsCheckPosition.x(),
+		0);
+}
+
+bool ContactRow::rightActionDisabled() const {
+	return true;
+}
+
+void ContactRow::rightActionPaint(
+		Painter &p,
+		int x,
+		int y,
+		int outerWidth,
+		bool selected,
+		bool actionSelected) {
+	if (_isMutual) {
+		st::menuIconGroups.paint(p, x, y, outerWidth);
+	}
+}
+
 object_ptr<Ui::BoxContent> PrepareContactsBox(
 		not_null<Window::SessionController*> window) {
 	using Mode = ContactsBoxController::SortMode;
@@ -823,7 +859,7 @@ bool ContactsBoxController::appendRow(not_null<UserData*> user) {
 
 std::unique_ptr<PeerListRow> ContactsBoxController::createRow(
 		not_null<UserData*> user) {
-	return std::make_unique<PeerListRow>(user);
+	return std::make_unique<ContactRow>(user);
 }
 
 RecipientMoneyRestrictionError WriteMoneyRestrictionError(
