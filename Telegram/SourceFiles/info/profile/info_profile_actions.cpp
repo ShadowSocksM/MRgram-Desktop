@@ -44,6 +44,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_forum.h"
 #include "data/data_forum_topic.h"
 #include "data/data_peer_values.h"
+#include "data/data_photo.h"
 #include "data/data_saved_sublist.h"
 #include "data/data_session.h"
 #include "data/data_user.h"
@@ -105,6 +106,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "window/window_peer_menu.h"
 #include "window/window_separate_id.h"
 #include "window/window_session_controller.h"
+#include "yukigram/settings/inferred_peer_dc.h"
 #include "styles/style_boxes.h"
 #include "styles/style_channel_earn.h" // st::channelEarnCurrencyCommonMargins
 #include "styles/style_chat_helpers.h"
@@ -1605,6 +1607,22 @@ Section DetailsFiller::makeInfo() {
 			);
 		}
 	};
+	const auto setupPeerDc = [&] {
+		if (Yukigram::Settings::InferredPeerDc->current()) {
+			if (const auto id = _peer->userpicPhotoId()) {
+				if (const auto photo = _peer->owner().photo(id)) {
+					if (const auto dc = photo->mediaKey().first & 0xFFFF'FFFF) {
+						using namespace Ui::Text;
+						addInfoOneLine(
+							rktr("info/peer-dc/inferred"),
+							rpl::single(WithEntities(u"DC%1"_q.arg(dc))),
+							QString()
+						);
+					}
+				}
+			}
+		}
+	};
 	const auto setupJoinDate = [&] {
 		if (ShowChannelJoinedBelowAbout.value()) {
 			if (const auto channel = _peer->asChannel()) {
@@ -1710,6 +1728,7 @@ Section DetailsFiller::makeInfo() {
 		});
 
 		setupPeerId();
+		setupPeerDc();
 
 		if (!user->isBot()) {
 			tracker.track(result->add(
@@ -1831,6 +1850,7 @@ Section DetailsFiller::makeInfo() {
 		}
 
 		setupPeerId();
+		setupPeerDc();
 		setupJoinDate();
 	}
 	raw->toggleOn(tracker.atLeastOneShownValue());
