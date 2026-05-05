@@ -1834,6 +1834,17 @@ void OverlayWidget::updateControls() {
 		_ttlTimer.cancel();
 	}
 	refreshTtlBadge(destroyAt);
+	const auto dc = [&]() -> uint32_t {
+		if (_photo) {
+			return _photo->mediaKey().first & 0xFFFF'FFFF;
+		} else if (_document) {
+			return _document->mediaKey().first & 0xFFFF'FFFF;
+		}
+		return -1;
+	}();
+	if (dc != -1) {
+		_dateText += " " + Ui::kQBullet + u" \u2068DC%1"_q.arg(dc);
+	}
 	if (!_fromName.isEmpty()) {
 		_fromNameLabel.setText(
 			st::mediaviewTextStyle,
