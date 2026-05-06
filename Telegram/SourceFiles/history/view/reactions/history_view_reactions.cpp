@@ -29,6 +29,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/painter.h"
 #include "ui/rect.h"
 #include "ui/power_saving.h"
+#include "yukigram/settings/star_hide_empty.h"
 #include "styles/style_chat.h"
 #include "styles/style_chat_helpers.h"
 
@@ -211,6 +212,9 @@ void InlineList::layoutButtons() {
 	buttons.reserve(sorted.size());
 	for (const auto &reaction : sorted) {
 		const auto &id = reaction->id;
+		if (Yukigram::Settings::StarHideEmpty->current() && id.paid() && !reaction->count) {
+			continue;
+		}
 		const auto i = ranges::find(_buttons, id, &Button::id);
 		buttons.push_back((i != end(_buttons))
 			? std::move(*i)
