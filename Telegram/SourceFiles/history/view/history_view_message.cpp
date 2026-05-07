@@ -36,6 +36,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "iv/markdown/iv_markdown_prepare_links.h"
 #include "iv/iv_instance.h"
 #include "iv/iv_rich_page.h"
+#include "yukigram/settings/hide_message_tail.h"
 #include "boxes/premium_preview_box.h"
 #include "boxes/share_box.h"
 #include "boxes/peers/tag_info_box.h"
@@ -6586,6 +6587,7 @@ Ui::BubbleRounding Message::countMessageRounding() const {
 	const auto item = data();
 	const auto keyboard = item->inlineReplyKeyboard();
 	const auto skipTail = smallBottom
+		|| Yukigram::Settings::HideMessageTail->current()
 		|| (media && media->skipBubbleTail())
 		|| (keyboard != nullptr)
 		|| item->isFakeAboutView()
