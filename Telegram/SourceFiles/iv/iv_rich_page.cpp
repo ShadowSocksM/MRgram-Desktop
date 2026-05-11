@@ -1412,7 +1412,9 @@ void AppendBlock(
 		AdoptAnchor(&parsed.anchorId, &parsed.text);
 		parsed.caption = ParseRichText(data.vcaption(), context);
 		AdoptAnchor(&parsed.anchorId, &parsed.caption);
-		result->push_back(std::move(parsed));
+		if (parsed.caption.text != TextWithEntities{"Cocoon AI Summary"}) {
+			result->push_back(std::move(parsed));
+		}
 	}, [&](const MTPDpageBlockBlockquoteBlocks &data) {
 		auto parsed = MakeBlock(BlockKind::Quote);
 		AppendBlocks(data.vblocks().v, &parsed.blocks, context);
