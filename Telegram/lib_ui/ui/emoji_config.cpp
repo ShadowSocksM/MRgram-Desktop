@@ -71,6 +71,7 @@ private:
 
 };
 
+auto EmojiFont = QFont("emoji");
 auto SizeNormal = -1;
 auto SizeLarge = -1;
 auto SpritesCount = -1;
@@ -782,7 +783,18 @@ const QPixmap &SinglePixmap(EmojiPtr emoji, int fontHeight) {
 	).first->second;
 }
 
+extern bool Yukigram_UseSystemEmojiFont;
+bool Yukigram_UseSystemEmojiFont = false;
+
 void Draw(QPainter &p, EmojiPtr emoji, int size, int x, int y) {
+	if (Yukigram_UseSystemEmojiFont) {
+		const auto oldFont = p.font();
+		EmojiFont.setPointSizeF(size * .75 / style::DevicePixelRatio());
+		p.setFont(EmojiFont);
+		p.drawText(QRect(x, y + 1, size + 1, size + 1), emoji->text());
+		p.setFont(oldFont);
+		return;
+	}
 #ifdef Q_OS_MAC
 	const auto s = (style::Scale() == kScaleForTouchBar)
 		? SizeLarge
