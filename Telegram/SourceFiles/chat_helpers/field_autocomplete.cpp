@@ -29,6 +29,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "api/api_chat_participants.h"
 #include "main/main_session.h"
 #include "storage/storage_account.h"
+#include "yukigram/settings/hide_popular_sticker_suggest.h"
 #include "core/application.h"
 #include "core/core_settings.h"
 #include "lang/lang_keys.h"
@@ -451,6 +452,10 @@ FieldAutocomplete::StickerRows FieldAutocomplete::getStickerSuggestions() {
 	const auto list = data->getListByEmoji({ _emoji }, _stickersSeed);
 	auto result = ranges::views::all(
 		list
+	) | ranges::views::filter(
+		[](not_null<DocumentData*> sticker) {
+			return sticker->isStickerSetInstalled() || !Yukigram::Settings::HidePopularStickerSuggest->current();
+		}
 	) | ranges::views::transform([](not_null<DocumentData*> sticker) {
 		return StickerSuggestion{
 			sticker,
