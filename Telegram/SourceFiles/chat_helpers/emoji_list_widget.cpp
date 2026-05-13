@@ -54,6 +54,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "main/main_session.h"
 #include "main/main_session_settings.h"
 #include "mainwidget.h"
+#include "yukigram/settings/hide_popular_emoji_picker.h"
 #include "core/core_settings.h"
 #include "core/application.h"
 #include "settings/sections/settings_premium.h"
@@ -3524,6 +3525,9 @@ void EmojiListWidget::refreshCustom() {
 	const auto push = [&](uint64 setId, bool installed) {
 		const auto megagroup = _megagroupSet
 			&& (setId == Data::Stickers::MegagroupSetId);
+		if (Yukigram::Settings::HidePopularEmojiPicker->current() && !installed && !megagroup) {
+			return;
+		}
 		const auto lookupId = megagroup
 			? _megagroupSet->mgInfo->emojiSet.id
 			: setId;
