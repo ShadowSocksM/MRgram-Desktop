@@ -20,6 +20,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/application.h"
 #include "core/core_settings.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "lottie/lottie_icon.h"
 #include "main/main_session.h"
 #include "settings/sections/settings_privacy_security.h"
@@ -457,9 +458,21 @@ void SessionInfoBox(
 		st::menuIconDevices);
 	AddSessionInfoRow(
 		container,
+		rktr("settings/privacy/sessions/client-api-id"),
+		u"%1 (%2)"_q.arg(data.apiId).arg(data.officialApp
+			? ktr("settings/privacy/sessions/client/official")
+			: ktr("settings/privacy/sessions/client/unofficial")),
+		st::menuIconInfo);
+	AddSessionInfoRow(
+		container,
 		tr::lng_sessions_system(),
 		data.system,
 		st::menuIconInfo);
+	AddSessionInfoRow(
+		container,
+		rktr("settings/privacy/sessions/created-time"),
+		langDateTimeFull(base::unixtime::parse(data.createdTime)),
+		st::menuIconSchedule);
 	AddSessionInfoRow(
 		container,
 		tr::lng_sessions_ip(),
@@ -490,17 +503,16 @@ void SessionInfoBox(
 
 Row::Row(not_null<RowDelegate*> delegate, const EntryData &data)
 : PeerListRow(data.hash)
-, _delegate(delegate)
-, _location(st::defaultTextStyle, LocationAndDate(data))
-, _type(TypeFromEntry(data))
-, _data(data)
-, _userpic(GenerateUserpic(_type)) {
-	setCustomStatus(_data.info);
+, _delegate(delegate) {
+	update(data);
 }
 
 void Row::update(const EntryData &data) {
 	_data = data;
-	setCustomStatus(_data.info);
+	setCustomStatus(ktr(_data.officialApp
+		? "settings/privacy/sessions/name/official"
+		: "settings/privacy/sessions/name/unofficial",
+		{ "session", _data.info }));
 	refreshName(st::sessionListItem);
 	_location.setText(st::defaultTextStyle, LocationAndDate(_data));
 	_type = TypeFromEntry(_data);
