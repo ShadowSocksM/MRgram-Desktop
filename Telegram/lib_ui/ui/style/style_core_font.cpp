@@ -56,6 +56,10 @@ void SetCustomFont(const QString &font) {
 	Custom = font;
 }
 
+extern QString Yukigram_MonospaceFont;
+QString Yukigram_MonospaceFont = "";
+QString Yukigram_ResolveMonospaceFont(QString name);
+
 namespace internal {
 
 struct ResolvedFont {
@@ -163,7 +167,11 @@ bool LoadCustomFont(const QString &filePath) {
 	return QString();
 }
 
-[[nodiscard]] QString MonospaceFont() {
+[[nodiscard]] QString MonospaceFont(bool ignoreYukigram = false) {
+	if (!ignoreYukigram) {
+		return Yukigram_ResolveMonospaceFont(Yukigram_MonospaceFont);
+	}
+
 	static const auto family = [&]() -> QString {
 		const auto manual = ManualMonospaceFont();
 		const auto system = SystemMonospaceFont();
@@ -559,6 +567,14 @@ OwnedFont::OwnedFont(const QString &custom, FontFlags flags, int size)
 }
 
 } // namespace internal
+
+QString Yukigram_ResolveMonospaceFont(QString name) {
+	return name.isEmpty()
+		? internal::MonospaceFont(true)
+		: name == SystemFontTag()
+		? internal::SystemMonospaceFont()
+		: name;
+}
 
 const FontResolveResult *FindAdjustResult(const QFont &font) {
 	const auto key = internal::QtFontKey(font);

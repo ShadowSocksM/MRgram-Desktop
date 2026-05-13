@@ -28,6 +28,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <QtGui/QFontDatabase>
 
+namespace style {
+QString Yukigram_ResolveMonospaceFont(QString name);
+}
+
 namespace Ui {
 namespace {
 
@@ -851,7 +855,8 @@ void ChooseFontBox(
 		not_null<GenericBox*> box,
 		Fn<QImage()> generatePreviewBg,
 		const QString &family,
-		Fn<void(QString)> save) {
+		Fn<void(QString)> save,
+		bool monospace) {
 	box->setTitle(tr::lng_font_box_title());
 
 	struct State {
@@ -865,7 +870,9 @@ void ChooseFontBox(
 
 	const auto top = box->setPinnedToTopContent(
 		object_ptr<Ui::VerticalLayout>(box));
-	top->add(MakePreview(top, generatePreviewBg, state->family.value()));
+	top->add(MakePreview(top, generatePreviewBg, state->family.value() | rpl::map([=](QString v) {
+		return monospace ? style::Yukigram_ResolveMonospaceFont(v) : v;
+	})));
 	const auto filter = top->add(object_ptr<Ui::MultiSelect>(
 		top,
 		st::defaultMultiSelect,

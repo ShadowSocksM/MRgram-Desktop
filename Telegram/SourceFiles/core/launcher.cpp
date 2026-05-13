@@ -30,6 +30,10 @@ extern "C" {
 #include <libavutil/log.h>
 } // extern "C"
 
+namespace style {
+extern QString Yukigram_MonospaceFont;
+}
+
 namespace Core {
 namespace {
 
@@ -399,6 +403,7 @@ int Launcher::exec() {
 	Logs::start();
 	base::options::init(cWorkingDir() + "tdata/experimental_options.json");
 	Yukigram::Options::init();
+	style::Yukigram_MonospaceFont = base::options::lookup<QString>("monospace-font").value();
 
 	// Must be called after options are inited.
 	initHighDpi();

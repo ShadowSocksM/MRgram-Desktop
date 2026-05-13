@@ -52,6 +52,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/menu/menu_add_action_callback.h"
 #include "history/view/history_view_quick_action.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "lottie/lottie_icon.h"
 #include "export/export_manager.h"
 #include "window/themes/window_theme.h"
@@ -78,6 +79,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/call_delayed.h"
 #include "support/support_common.h"
 #include "support/support_templates.h"
+#include "base/options.h"
 #include "main/main_session.h"
 #include "main/main_session_settings.h"
 #include "mainwidget.h"
@@ -89,6 +91,15 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "styles/style_dialogs.h"
 
 #include <QAction>
+
+base::options::option<QString> MonospaceFontName({
+	.id = "monospace-font",
+	.name = "Monospace font family",
+});
+
+namespace style {
+extern QString Yukigram_MonospaceFont;
+}
 
 namespace Settings {
 namespace {
@@ -860,6 +871,15 @@ void BuildThemeSettingsSection(SectionBuilder &builder) {
 			.id = u"chat/font"_q,
 			.title = tr::lng_settings_font_family(tr::now),
 			.keywords = { u"font"_q, u"family"_q, u"text"_q },
+			.icon = { &st::menuIconFont },
+		};
+	});
+
+	builder.add(nullptr, [] {
+		return SearchEntry{
+			.id = u"chat/mono-font"_q,
+			.title = ktr("settings/chat/mono-font/title"),
+			.keywords = { u"font"_q, u"family"_q, u"code"_q, u"monospace"_q },
 			.icon = { &st::menuIconFont },
 		};
 	});
@@ -2822,12 +2842,65 @@ void SetupThemeSettings(
 			return result;
 		};
 		controller->show(
-			Box(Ui::ChooseFontBox, generateBg, family->current(), save));
+			Box(Ui::ChooseFontBox, generateBg, family->current(), save, false));
 	});
 	if (highlights) {
 		highlights->push_back({
 			u"chat/font"_q,
 			{ fontButton.get(), { .rippleShape = true } },
+		});
+	}
+
+	const auto monofamily = container->lifetime().make_state<
+		rpl::variable<QString>
+	>(MonospaceFontName.value());
+	auto monolabel = monofamily->value() | rpl::map([](QString family) {
+		return family.isEmpty()
+			? tr::lng_font_default(tr::now)
+			: (family == style::SystemFontTag())
+			? tr::lng_font_system(tr::now)
+			: family;
+	});
+	const auto monofontButton = AddButtonWithLabel(
+		container,
+		rktr("settings/chat/mono-font/title"),
+		std::move(monolabel),
+		st::settingsButton,
+		{ &st::menuIconFont });
+	monofontButton->setClickedCallback([=] {
+		const auto save = [=](QString chosen) {
+			*family = chosen;
+			style::Yukigram_MonospaceFont = chosen;
+			MonospaceFontName.set(chosen);
+			Local::writeSettings();
+			Core::Restart();
+		};
+
+		const auto theme = std::shared_ptr<Ui::ChatTheme>(
+			Window::Theme::DefaultChatThemeOn(container->lifetime()));
+		const auto generateBg = [=] {
+			const auto size = st::boxWidth;
+			const auto ratio = style::DevicePixelRatio();
+			auto result = QImage(
+				QSize(size, size) * ratio,
+				QImage::Format_ARGB32_Premultiplied);
+			auto p = QPainter(&result);
+			Window::SectionWidget::PaintBackground(
+				p,
+				theme.get(),
+				QSize(size, size * 3),
+				QRect(0, 0, size, size));
+			p.end();
+
+			return result;
+		};
+		controller->show(
+			Box(Ui::ChooseFontBox, generateBg, monofamily->current(), save, true));
+	});
+	if (highlights) {
+		highlights->push_back({
+			u"chat/mono-font"_q,
+			{ monofontButton.get(), { .rippleShape = true } },
 		});
 	}
 
