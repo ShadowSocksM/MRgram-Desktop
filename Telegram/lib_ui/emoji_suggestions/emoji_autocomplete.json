@@ -2649,7 +2649,7 @@
         "output": "1f433",
         "name": "spouting whale",
         "alpha_code": ":whale:",
-        "aliases": ""
+        "aliases": ":docker:"
     },
     "1f434": {
         "output": "1f434",
@@ -5499,7 +5499,7 @@
         "output": "1f40b",
         "name": "whale",
         "alpha_code": ":whale2:",
-        "aliases": ""
+        "aliases": ":podman:"
     },
     "1f40f": {
         "output": "1f40f",
@@ -10270,6 +10270,12 @@
         "name": "robot face",
         "alpha_code": ":robot:",
         "aliases": ":robot_face:"
+    },
+    "1f97a": {
+        "output": "1f97a",
+        "name": "pleading face",
+        "alpha_code": ":pleading:",
+        "aliases": ":bottom:"
     },
     "1f981": {
         "output": "1f981",
