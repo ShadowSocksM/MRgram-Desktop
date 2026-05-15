@@ -581,6 +581,7 @@ public:
 
 	void showAddContact();
 	void showNewGroup();
+	void showNewSupergroup();
 	void showNewChannel();
 
 	void showPassportForm(const Passport::FormRequest &request);

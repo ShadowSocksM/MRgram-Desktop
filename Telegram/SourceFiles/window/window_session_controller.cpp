@@ -3346,6 +3346,10 @@ void SessionController::showNewGroup() {
 	_window->show(Box<GroupInfoBox>(this, GroupInfoBox::Type::Group));
 }
 
+void SessionController::showNewSupergroup() {
+	_window->show(Box<GroupInfoBox>(this, GroupInfoBox::Type::Megagroup));
+}
+
 void SessionController::showNewChannel() {
 	_window->show(Box<GroupInfoBox>(this, GroupInfoBox::Type::Channel));
 }

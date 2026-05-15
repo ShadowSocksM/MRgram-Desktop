@@ -33,6 +33,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/profile/info_profile_icon.h"
 #include "info/stories/info_stories_widget.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "main/main_account.h"
 #include "main/main_domain.h"
 #include "main/main_session.h"
@@ -686,6 +687,15 @@ void MainMenu::setupMenu() {
 		), controller, true)->addClickHandler([=](Qt::MouseButton which) {
 			if (which == Qt::LeftButton) {
 				controller->showNewGroup();
+			}
+		});
+
+		AddMyChannelsBox(addAction(
+			rktr("drawer/new-supergroup/title"),
+			{ &st::menuIconGroups }
+		), controller, true)->addClickHandler([=](Qt::MouseButton which) {
+			if (which == Qt::LeftButton) {
+				controller->showNewSupergroup();
 			}
 		});
 
