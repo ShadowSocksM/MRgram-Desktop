@@ -25,6 +25,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "api/api_communities.h"
 #include "api/api_global_privacy.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "lottie/lottie_icon.h"
 #include "ui/boxes/confirm_box.h"
 #include "base/random.h"
@@ -325,6 +326,7 @@ private:
 	void addBlockUser();
 	void addBanFromChannel();
 	void addViewDiscussion();
+	void addFirstMessage();
 	void addDirectMessages();
 	void addToggleTopicClosed();
 	void addExportChat();
@@ -1038,6 +1040,20 @@ void Filler::addViewDiscussion() {
 			chat,
 			Window::SectionShow::Way::Forward);
 	}, &st::menuIconDiscussion);
+}
+
+void Filler::addFirstMessage() {
+	const auto peer = _peer->isMegagroup() ? _peer->asMegagroup() : _peer->asChannel();
+	if (!peer) {
+		return;
+	}
+	const auto navigation = _controller;
+	_addAction(ktr("menu/first-message/title"), [=] {
+		navigation->showPeerHistory(
+			peer,
+			Window::SectionShow::Way::Forward,
+			1);
+	}, &st::menuIconShowInChat);
 }
 
 void Filler::addDirectMessages() {
@@ -1926,6 +1942,7 @@ void Filler::fillHistoryActions() {
 	addViewAsTopics();
 	addManageChat();
 	addViewStatistics();
+	addFirstMessage();
 	addStoryArchive();
 	addSupportInfo();
 	addBoostChat();
