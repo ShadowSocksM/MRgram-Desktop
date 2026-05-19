@@ -220,7 +220,30 @@ void EditLinkBox(
 
 	const auto submit = [=] {
 		const auto linkText = text->getTextWithTags();
-		const auto linkUrl = validate(url->getLastText());
+		auto linkUrl = url->getLastText();
+		long long uid = 0;
+		bool ok = false;
+		const auto prefix = u"tg://user?id="_q;
+		if (const auto parsed = linkUrl.toLongLong(&ok); ok) {
+			uid = parsed;
+		} else if (const auto index = linkUrl.indexOf(prefix); index != -1) {
+			uid = linkUrl.slice(index + prefix.length()).toLongLong();
+		}
+		if (uid > 0) {
+			const auto user = show->session().data().userLoaded(uid);
+			if (!user) {
+				url->showError();
+				return;
+			}
+			const auto userId = UserId(uid);
+			linkUrl = "mention://" + TextUtilities::MentionNameDataFromFields({
+				.selfId = show->session().userId().bare,
+				.userId = userId.bare,
+				.accessHash = user->accessHash()
+			});
+		} else {
+			linkUrl = validate(linkUrl);
+		}
 		if (linkText.text.isEmpty()) {
 			text->showError();
 			return;
