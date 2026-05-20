@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=@YUKIGRAM_DISPLAY_NAME@
-Comment=New era of messaging
+Comment=Telegram Desktop, patched
 TryExec=@YUKIGRAM_APP_ID@
 Exec=@YUKIGRAM_APP_ID@ -- %U
 Icon=@YUKIGRAM_APP_ID@
@@ -18,5 +18,5 @@ X-GNOME-SingleWindow=true
 
 [Desktop Action quit]
 Exec=@YUKIGRAM_APP_ID@ -quit
-Name=Quit Telegram
+Name=Quit Yukigram
 Icon=application-exit
