@@ -492,7 +492,7 @@ void InstallLauncher() {
 	const auto icon = appIcons + ApplicationIconName() + u".png"_q;
 	QFile::remove(icon);
 	QFile::remove(icons + u"telegram.png"_q);
-	if (QFile::copy(u":/gui/art/logo_256.png"_q, icon)) {
+	if (QFile::copy(u":/gui/art/yukigram.svg"_q, icon)) {
 		DEBUG_LOG(("App Info: Icon copied to '%1'").arg(icon));
 	}
 

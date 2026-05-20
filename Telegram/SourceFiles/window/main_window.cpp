@@ -137,7 +137,7 @@ const char kOptionNewWindowsSizeAsFirst[] = "new-windows-size-as-first";
 const char kOptionDisableTouchbar[] = "touchbar-disabled";
 
 const QImage &Logo() {
-	static const auto result = QImage(u":/gui/art/logo_256.png"_q);
+	static const auto result = QIcon(u":/gui/art/yukigram.svg"_q).pixmap(QSize(256, 256)).toImage();
 	return result;
 }
 
