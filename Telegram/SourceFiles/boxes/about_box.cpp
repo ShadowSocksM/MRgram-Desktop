@@ -63,7 +63,8 @@ rpl::producer<TextWithEntities> Text3() {
 } // namespace
 
 void AboutBox(not_null<Ui::GenericBox*> box) {
-	box->setTitle(u"Telegram Desktop"_q);
+	const auto commit_info = "@commit";
+	box->setTitle(u"Yukigram "_q + (commit_info[0] != '@' ? commit_info : "v7.1.5.0+wip"));
 
 	auto layout = box->verticalLayout();
 
