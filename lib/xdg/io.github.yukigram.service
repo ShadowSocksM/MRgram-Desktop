@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=@YUKIGRAM_APP_ID@
+Exec=@YUKIGRAM_APP_ID@

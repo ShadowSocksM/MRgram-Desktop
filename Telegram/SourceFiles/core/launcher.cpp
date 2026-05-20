@@ -19,6 +19,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/version.h"
 #include "base/concurrent_timer.h"
 #include "base/options.h"
+#include "yukigram/appid.h"
 
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QStandardPaths>
@@ -340,7 +341,7 @@ void Launcher::init() {
 	prepareSettings();
 	initQtMessageLogging();
 
-	QApplication::setApplicationName(u"TelegramDesktop"_q);
+	QApplication::setApplicationName(Yukigram::AppId);
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	// fallback session management is useless for tdesktop since it doesn't have

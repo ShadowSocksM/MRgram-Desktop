@@ -1,0 +1,3 @@
+#include "yukigram/appid.h"
+const char Yukigram::AppId[] = "@YUKIGRAM_APP_ID@";
+const bool Yukigram::Devel = @YUKIGRAM_DEVEL@;

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <component type="desktop">
-    <id>org.telegram.desktop</id>
+    <id>@YUKIGRAM_APP_ID@</id>
     <metadata_license>CC0-1.0</metadata_license>
     <project_license>GPL-3.0</project_license>
     <name>Telegram</name>
@@ -106,10 +106,10 @@
         <content_attribute id="money-gambling">none</content_attribute>
         <content_attribute id="money-advertising">moderate</content_attribute>
     </content_rating>
-    <launchable type="desktop-id">org.telegram.desktop.desktop</launchable>
+    <launchable type="desktop-id">@YUKIGRAM_APP_ID@.desktop</launchable>
     <provides>
-        <binary>Telegram</binary>
-        <dbus type="session">org.telegram.desktop</dbus>
+        <binary>@YUKIGRAM_APP_ID@</binary>
+        <dbus type="session">@YUKIGRAM_APP_ID@</dbus>
         <mediatype>x-scheme-handler/tg</mediatype>
         <mediatype>x-scheme-handler/tonsite</mediatype>
     </provides>
