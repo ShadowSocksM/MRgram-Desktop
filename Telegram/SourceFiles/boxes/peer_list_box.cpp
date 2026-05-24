@@ -27,6 +27,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/painter.h"
 #include "ui/ui_utility.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "storage/file_download.h"
 #include "data/data_peer_values.h"
 #include "data/data_channel.h"
@@ -735,21 +736,34 @@ void PeerListRow::refreshStatus() {
 			_statusValidTill = crl::now()
 				+ Data::OnlineChangeTimeout(user, time);
 		}
-	} else if (auto chat = peer()->asChat()) {
+	} else if (const auto chat = peer()->asChat()) {
 		if (!chat->amIn()) {
 			setStatusText(tr::lng_chat_status_unaccessible(tr::now));
-		} else if (chat->count > 0) {
-			setStatusText(tr::lng_chat_status_members(tr::now, lt_count_decimal, chat->count));
 		} else {
-			setStatusText(tr::lng_group_status(tr::now));
+			setStatusText(ktr("box/peer-list/count/members", chat->count, { "kind", ktr("box/peer-list/group") }, { "count", QString::number(chat->count) }));
 		}
-	} else if (peer()->isMegagroup()) {
-		setStatusText(tr::lng_group_status(tr::now));
 	} else if (const auto channel = peer()->asChannel()) {
+		const auto kind = ktr(channel->isCommunity() ? "box/peer-list/channel-like/community"
+			: channel->isMonoforum() ? "box/peer-list/channel-like/monoforum"
+			: channel->isForum() ? "box/peer-list/channel-like/forum"
+			: channel->isMegagroup() ? "box/peer-list/channel-like/supergroup"
+			: channel->isBroadcast() ? "box/peer-list/channel-like/broadcast"
+			: "box/peer-list/channel-like/unknown");
 		if (channel->isCommunity()) {
-			setStatusText(tr::lng_community_status(tr::now));
+			const auto info = channel->communityInfo();
+			const auto count = info ? int(info->histories().size()) : 0;
+			setStatusText(count
+				? tr::lng_community_chats(tr::now, lt_count, count)
+				: tr::lng_community_status(tr::now));
+		} else if (channel->membersCountKnown()) {
+			setStatusText(ktr(
+				channel->isBroadcast() ? "box/peer-list/count/subscribers" : "box/peer-list/count/members",
+				channel->membersCount(),
+				{ "kind", kind },
+				{ "count", QString::number(channel->membersCount()) }
+			));
 		} else {
-			setStatusText(tr::lng_channel_status(tr::now));
+			setStatusText(kind);
 		}
 	}
 }
