@@ -1,3 +1,8 @@
+9999 wip (01.01.99)
+
+- Upstream updated to 7.2.8
+- Allow hiding "Pasted as plain text" toast
+
 7.2.8 (09.09.26)
 
 - Fix some more crashes with bad lottie files.
@@ -44,6 +49,10 @@
 
 - First version of v2 update system.
 
+7.1.5.0 (03.09.26)
+
+- Upstream updated to 7.1.5
+
 7.1.5 (02.09.26)
 
 - Fix crash on Linux.
@@ -61,6 +70,11 @@
 - Fix stealth mode not opening the chosen story from a profile.
 - Fix window activation from the tray on X11.
 - Crash fixes.
+
+7.1.3.0 (27.08.26)
+
+- Upstream updated to 7.1.3
+- Revert pill design for restore windows prompt
 
 7.1.3 (27.08.26)
 
@@ -84,6 +98,10 @@
 - Warn about possible risks when adding a WEB proxy.
 - Crash fixes.
 
+7.1.1.0 (24.08.26)
+
+- Upstream updated to 7.1.1
+
 7.1.1 (22.08.26)
 
 - Fix broken chats loading for some users.
@@ -101,6 +119,10 @@
 - Add sending of music files in the attach menu.
 - Add new WEB proxy type to connection settings.
 - Crash fixes.
+
+7.0.9.0 (08.08.26)
+
+- Upstream updated to 7.0.9
 
 7.0.9 (05.08.26)
 
@@ -122,12 +144,21 @@
 - Fix Mini App cookies on Linux.
 - Crash fixes.
 
+7.0.6.0 (27.07.26)
+
+- Upstream updated to 7.0.6
+
 7.0.6 (27.07.26)
 
 - Allow muting forever by left click on the profile mute button.
 - Improve tables, tasks and titles in rich message previews.
 - Fix adding admins in communities.
 - Crash fixes.
+
+7.0.5.0 (24.07.26)
+
+- Upstream updated to 7.0.5
+- Option to enable kinetic scrolling mirrored from experimental (tg://settings/exp/qscroller, tg://settings/yukigram/qscroller)
 
 7.0.5 (23.07.26)
 
@@ -147,12 +178,22 @@
 
 - Fix media viewer freezes on macOS.
 
+7.0.2.0 (18.07.26)
+
+- Upstream updated to 7.0.2
+
 7.0.2 (17.07.26)
 
 - Fix editing existing rich messages.
 - Fix editing scheduled rich messages.
 - Improve rich messages editor (drag-n-drop, changing tables).
 - Allow forwarding to chats hidden inside a community.
+
+7.0.1.0 (17.07.26)
+
+- Upstream updated to 7.0.1
+- "Disable swipe to next channel" Yukigram option is removed as it is already present upstream at Settings - Chat - Messages - Swipe to next unread channel
+- Experimental "Profile media tabs" are freed from liquid glass
 
 7.0.1 (14.07.26)
 
@@ -166,6 +207,22 @@
 - Ephemeral messages in groups.
 - Communities of chats.
 
+6.9.4.2 beta (08.07.26)
+
+- Fix another from-source build crash during static initialization
+
+6.9.4.1 beta (07.07.26)
+
+- Option to disable swipe to next channel gesture (tg://settings/yukigram/disable-swipe-next)
+- Toasts now use current window instead of the main one
+- Option to replace webpage previews (tg://settings/yukigram/preview-replace)
+- Option to configure webpage preview replacements (tg://settings/yukigram/preview-replace-patterns)
+- Integer and string options can now be reset
+
+6.9.4.0 beta (03.07.26)
+
+- Upstream updated to 6.9.4-beta
+
 6.9.4 beta (02.07.26)
 
 - Add rich message editor with media, tables and math formulas.
@@ -178,11 +235,38 @@
 - Add alphabetical fast-scroll index to contacts box.
 - Improve screen reader accessibility for chats list and folders.
 
+6.9.3.3 (27.06.26)
+
+- Make emoji list in sticker preview fit to window
+- Show custom title in group call bar
+- Option to prevent chat history deletion (tg://settings/yukigram/prevent-delete)
+
+6.9.3.2 (21.06.26)
+
+- Restore correct sticker preview size
+- Make sticker preview fit to window
+- Fix badge counter (Unity launchentry warnings are gone)
+- Backport fix for SIGABRT (semaphore over-release) in lib_crl
+
+6.9.3.1 (19.06.26)
+
+- Copy deep links to Yukigram settings from context menu
+- Fix crash in "View group info" when no chat is opened
+- Fix broken userpic on compact chat list toggle
+
+6.9.3.0 (14.06.26)
+
+- Upstream updated to 6.9.3
+
 6.9.3 (12.06.26)
 
 - Fix possible crash in formula parsing.
 - Fix field resize after Undo/Redo.
 - Fix OpenGL in Windows build.
+
+6.9.2.0 (12.06.26)
+
+- Upstream updated to 6.9.2
 
 6.9.2 (10.06.26)
 
@@ -192,6 +276,24 @@
 - Fix display of rich messages without text.
 - Fix display of rich messages in Recent Actions.
 - Replace dispatch with TooManyCooks (Linux).
+
+6.9.1.0 (10.06.26)
+
+- Various fixes, features and other improvements. See changelogs of 6.8.3.x, 6.8.4.x, 6.8.5.x, and 6.9.1.0-rc.x for more.
+- All installations with old data directory path should migrate as described in this post (https://t.me/yukigram/42), as mixing development and production tdata is not supported. Fallback to ~/.local/share/Yukigram might be removed in the future, and is already removed for pre-release builds.
+- Binary name changed from yukigram to io.github.yukigram. This allows installing devel builds side-by-side with release builds. Packagers are encouraged to symlink yukigram to io.github.yukigram for compatibility with existing installations.
+- Batch-applying patches with patch is now broken. Apply patches one-by-one instead.
+- System minizip and zlib are now required to build and "fix minizip includes" patch can now be safely dropped.
+
+6.9.1.0 rc.2 (10.06.26)
+
+- Fix haptic feedback in nixpak
+
+6.9.1.0 rc.1 (10.06.26)
+
+- Upstream updated to 6.9.1
+- Colorize peer type icon according to peer name color
+- Proper message id formatting in tooltip
 
 6.9.1 (09.06.26)
 
@@ -205,6 +307,10 @@
 - Links in Poll Options.
 - Viewer for Markdown files in .md format.
 - Instant View that's really instant.
+
+6.8.5.0 beta (06.06.26)
+
+- Upstream updated to 6.8.5-beta
 
 6.8.5 beta (04.06.26)
 
@@ -222,6 +328,54 @@
 - Fix pause of animated reactions when opening their context menu.
 - Improve performance with RHI enabled.
 
+6.8.4.3 beta (04.06.26)
+
+- Show deleted reply ID
+- Plain send option in context menu
+- Option to enable large (fullsize) sticker preview (tg://settings/yukigram/large-sticker-preview)
+- Option to enable admin list button (tg://settings/yukigram/quick-admin-list)
+- Option to enable recent actions button (tg://settings/yukigram/quick-recent-actions)
+- Mention by name with right-click (in addition to Ctrl + left-click from upstream)
+- Round video messages don't push "Forwarded from" outside the screen on small widths
+- Option to disable rounding of round video messages (tg://settings/yukigram/unround-messages)
+- Option to change sticker size (tg://settings/yukigram/sticker-size)
+- Option to change custom emoji size (tg://settings/yukigram/custom-emoji-size)
+- Option to change round video messages size (tg://settings/yukigram/round-size)
+
+6.8.4.2 beta (31.05.26)
+
+- Fix translations
+- Set correct title for Forward box
+- Do not solid-color fill spoilered media previews when old-style spoilers are used
+- Shorten message signature size
+- Fix scheduled message id display
+- tg://woof
+- Fix emoji size on non-100%-scaling when system emoji font is used
+- Fallback Telegram icon replaced with Yukigram icon
+
+6.8.4.1 beta (29.05.26)
+
+- Warn when polls forbid revoting
+- "Apply" instead of "Join" in peer info buttons
+- Option to hide bottom button bar (Join channel, mute/unmute, etc) (tg://settings/yukigram/hide-bottom-bar)
+- Allow opening channel direct messages from kebab menus even if user is not an admin
+- Option to enable old-style spoilers (tg://settings/yukigram/old-style-spoilers)
+- Fix rounding of bot keyboard buttons and top bar history buttons
+- Option to disable shouting in buttons (tg://settings/yukigram/no-shout-buttons)
+- Allow retracting quiz vote if quiz allows revoting
+- Russian translation
+- Fix folder chat list
+- Updated nixpak
+
+6.8.4.0 beta (27.05.26)
+
+- Upstream updated to 6.8.4-beta
+- Video controls for GIFs
+- Option to disable edit by Up key (tg://settings/yukigram/disable-up-edit)
+- More info in peer list box (e.g. forward message to)
+- More info in folder chat list
+- Disable ~/.TelegramDesktop tdata fallback
+
 6.8.4 beta (27.05.26)
 
 - Drag-and-drop of photos into chats.
@@ -234,6 +388,31 @@
 - Fix borders in Instant View tables.
 - Fix several possible crashes.
 
+6.8.3.3 beta (24.05.26)
+
+- Better appstream metadata (changelogs, versions, etc)
+- Constrain album width in wide messages
+- Peer ID and Join Date in peer info now render below description
+- Split "Stickers and GIFs" chat permission toggle
+
+6.8.3.2 beta (22.05.26)
+
+- Revert pillifying of suggestions in chat list (test on local debug builds with Ctrl+Shift+T in chat list; test on bincache builds with creating a new session).
+- Binary name changed from yukigram to io.github.yukigram (for release versions) or io.github.yukigram.devel (for beta and pre-release versions). This allows installing devel builds side-by-side with release builds. Packagers are encouraged to symlink yukigram to io.github.yukigram for compatibility in release packages.
+- Pre-releases no longer fallback to ~/.TelegramDesktop and ~/.local/share/Yukigram, as sharing tdata between pre-releases and releases is not supported. This does not affect release builds, which include all postmarketOS builds.
+- Batch-applying patches with patch is now broken. Apply patches one-by-one instead.
+
+6.8.3.1 beta (21.05.26)
+
+- Nix package now knows that it's a development version and will store its data in a separate directory
+- All installations with old data directory path should migrate as described in this post (https://t.me/yukigram/42), as mixing development and production tdata is not supported. Fallbacks to ~/.TelegramDesktop and ~/.local/share/Yukigram might be removed in the future.
+- Remove AI instant view summary (again)
+- Fix webview socket path. My fix just adds a random number in hopes that it won't collide (unless you're lucky enough to hit the same PID 65k times. good luck lol).
+
+6.8.3.0 beta (20.05.26)
+
+- Upstream updated to 6.8.3-beta
+
 6.8.3 beta (19.05.26)
 
 - In-app markdown file viewer.
@@ -243,6 +422,63 @@
 - Fix Ctrl+Shift+V on non-English layouts.
 - Upgrade to Qt 6.11.1 on macOS and Linux.
 - Test QRhi for Thanos effect on Qt 6.11.1.
+
+6.8.2.3 (26.05.26)
+
+- Fix from-source build crash during static initialization
+
+6.8.2.2 (20.05.26)
+
+- Additional emoji aliases (:docker: -> 🐳, :podman: -> 🐋, :bottom: -> 🥺)
+- "New Supergroup" button in drawer
+- release branch autoadvance
+- Publish to GitHub Releases
+- "Go to first message" in kebab menu in chat header
+- Mention users from "new link" box by setting link target to id or a tg://user?id= link
+- Immutable GitHub releases
+- Artifact attestations
+
+6.8.2.2 pre.4 (19.05.26)
+
+- "Go to first message" in kebab menu in chat header
+- Mention users from "new link" box by setting link target to id or a tg://user?id= link
+- Immutable GitHub releases
+- Artifact attestations
+
+6.8.2.2 pre.3 (16.05.26)
+
+- Build fixes
+
+6.8.2.2 pre.2 (16.05.26)
+
+- Build fixes
+
+6.8.2.2 pre.1 (16.05.26)
+
+- Additional emoji aliases (:docker: -> 🐳, :podman: -> 🐋, :bottom: -> 🥺)
+- "New Supergroup" button in drawer
+- release branch autoadvance
+- Publish to GitHub Releases
+
+6.8.2.1 (14.05.26)
+
+- Flatpak builds are signed with GPG now and can therefore be installed for user without manually downloading flatpak repo artifacts. To use flatpak without sudo on existsing installations, readd the repo
+- Option to change monospace font (Chat (tg://settings/appearance) > Theme > Monospace font family, not in Yukigram settings)
+- More information about sessions (api id, creation date, is official client) in session list (Privacy (tg://settings/privacy) > Security > Active sessions)
+- Option to hide popular stickers from being suggested (tg://settings/yukigram/hide-popular-sticker-suggest)
+- Option to hide popular custom emoji packs from emoji picker (tg://settings/yukigram/hide-popular-emoji-picker)
+- Large categories in Yukigram settings were split into smaller ones.
+- (settings) Tweaks (tg://settings/yukigram/tweaks) split out of Interface (tg://settings/yukigram/interface),
+- (settings) Chat list (tg://settings/yukigram/dialogs) remains,
+- (settings) Chat style (tg://settings/yukigram/style) and Reactions (tg://settings/yukigram/reactions) split out of Message history (renamed to Messages (tg://settings/yukigram/history)),
+- (settings) Stickers and Emoji picker (tg://settings/yukigram/picker) split out of Composing messages (tg://settings/yukigram/compose),
+- (settings) System (tg://settings/yukigram/system) remains.
+
+6.8.2.0 (12.05.26)
+
+- Upstream updated to 6.8.2
+- Disable Cocoon AI summary in Instant View
+- Option to use system emoji font (tg://settings/yukigram/system-emoji) (emoji in fontconfig) instead of bundled emoji packs
 
 6.8.2 (12.05.26)
 
@@ -255,6 +491,23 @@
 - Fix possible crash in gift message display.
 - Return "Chatbots" to Telegram Business.
 - Separate badge background color keys for sidebar buttons.
+
+6.8.1.1 (11.05.26)
+
+- Disable sponsored search results
+- Fix non-premium sending of existing custom reactions (upstreamed)
+- Forward (Alt+F), Copy (Alt+C) and Steal (no-text copy) (Alt+Shift+C) now work without selecting chat from context menus
+- This update introduces the ability to patch submodules. This impacts only applying patches with git am and incremental builds. Consult updated Contributing notes (https://github.com/yukigram/yukigram/blob/main/CONTRIBUTING.md) on how to use the adjusted workflow
+
+6.8.1.0-reupload (09.05.26)
+
+- Only on cachix
+- (nix) package caching changed to cache unwrapped package instead of wrapper. This allows customizing Yukigram wrapper without having to perform a heavy rebuild, which defeats the entire purpose of a wrapper. The wrapper is not cached and needs to be built locally. This slightly negatively impacts default-case build times, but allows for more customization and simpler packaging tweaks
+- (nix) Yukigram wrapper now pulls GStreamer and some plugins to allow audio playback in webviews
+
+6.8.1.0 (08.05.26)
+
+- Upstream updated to 6.8.1
 
 6.8.1 (08.05.26)
 
@@ -273,6 +526,54 @@
 - Fix tg:// link handling on cold start and login widget window activation.
 - Copy and paste formatting to and from HTML.
 
+6.7.8.3 (07.05.26)
+
+- Photo and document DC is now shown near media date in media viewer
+- Show inferred peer DC (tg://settings/yukigram/inferred-peer-dc) (based on peer userpic) in peer info
+- Peer ID (tg://settings/yukigram/show-peer-id-below-about) and join date (tg://settings/yukigram/show-channel-joined-below-about) can now be seen from topic view of forums. Previously one had to open "all topics combined" view (with Ctrl+PageUp, Ctrl+PageDown) in forums to show peer id or join date. Peer ID is already seen in a topic link, so only join date was missing
+- Photos are sent in High Quality by default for new installations. To toggle, open a photo larger than 1280 pixels by any side (i.e. that does not fit in 1280x1280 square) for sending, right-click on "Send" button, and toggle "High Quality". If High Quality is enabled and the image is large enough, a little watermark "HD" will be shown in the bottom left corner of an image preview. This option persists across sending different images and restarts
+- Option to hide star reaction button when there are no stars on the message (tg://settings/yukigram/star-hide-empty)
+- Option to hide star reactions completely (tg://settings/yukigram/star-hide-always)
+- Option to hide message bubble tail (tg://settings/yukigram/hide-message-tail)
+- Mirrored embedded search in single-column layout (tg://settings/yukigram/force-compose-search-one-column) experimental setting
+
+6.7.8.2 (05.05.26)
+
+- No longer named "Yukigram (Debug)" in production builds
+- Peer ID is moved from About to a separate info section and now shows peer type
+- Join date is moved from About to a separate info section
+- Mutual contact indicator in contacts list (tg://contacts)
+- Fix forum chat type icon in messages view
+- Single-column (mobile) layout (tg://settings/yukigram/force-mobile-layout) can now be correctly toggled from runtime without resizing window
+- (nix) Added release branch that tracks latest cached tag (similar to hydra channels in nixpkgs)
+- (nix) It is now possible to reference nonisolated package without hacks
+- (nix) default.nix is a flake-like attrset
+- (nix) It is now possible to override used nixpkgs with flakes (set "follows"). Check custom options (https://github.com/yukigram/yukigram#custom-options) for more
+- (nix) Overrides of appId and customNixpakOptions are moved. Check custom options (https://github.com/yukigram/yukigram#custom-options) for more
+- (nix) Cachix binary caches
+
+6.7.8.1 (29.04.26)
+
+- Application ID handling became saner. Default data directory name changes from Yukigram to io.github.yukigram. To use new paths from an older installation, rename Yukigram folder to io.github.yukigram in ~/.local/share/ (unisolated package, e.g. static binary, AUR or manual build) or in ~/.var/app/io.github.yukigram/data/ (nixpak, flatpak)
+- Window class changes from Yukigram to io.github.yukigram
+- Remove second "Message" button in peer info box if the first one is already shown
+- Yukigram settings are moved to separate settings page and categorized: tg://settings/yukigram
+- Yukigram settings can now be searched for (try pressing Ctrl+F and typing yukigram in settings)
+- Some experimental settings are also present on Yukigram settings page and are searchable
+- Allow using monochrome (symbolic) tray icon from icon theme: tg://settings/yukigram/icon-theme-symbolic. Telegram Desktop assumes GNOME symbolic recoloring (adapting to theme color) mechanism. KDE uses a different algorithm and therefore requires using icons from icon themes (e.g. Breeze Icons) instead of bundled ones. As Yukigram exposes its icons with a different application id (io.github.yukigram instead of org.telegram.desktop), this override does not happen and bundled symbolics are used. This option allows to use telegram icons from icon theme by using official icon names instead of patched ones. Telegram Desktop and Yukigram can still be installed alongside one another, install phase is not affected, only tray icon rendering code is
+- Allow hiding channels requiring Premium in "Send As" menu: tg://settings/yukigram/hide-send-as-premium
+- Allow hiding "Send As" button completely: tg://settings/yukigram/hide-send-as
+- Peer type icons in history are now hidden by default: tg://settings/yukigram/history-peer-type-icons
+- Allow hiding reply background emoji: tg://settings/yukigram/hide-reply-background-emoji
+- Channel statistics are accessible from kebab menu near Recent Actions button
+- Incorrectly names itself "Yukigram (Debug)"
+
+6.7.8.0 (24.04.26)
+
+- Upstream updated to 6.7.8
+- (6.7.7.0-beta) Show last seen time with seconds
+- (6.7.7.0-beta) Compact chat list (as was in Kotatogram). "Hide chat list in forums" experimental setting is needed to counter weird animations. Some chat list entries are not collapsed by design: search results, saved messages sidebar and uncollapsed archive folder
+
 6.7.8 (24.04.26)
 
 - Proxy auto-rotation option.
@@ -289,6 +590,12 @@
 - Fix crash in proxy sharing before auth.
 - Fix layout for RTL messages.
 
+6.7.7.0 beta (21.04.26)
+
+- Upstream updated to 6.7.7-beta
+- Show last seen time with seconds
+- Compact chat list (as was in Kotatogram). "Hide chat list in forums" experimental setting is needed to counter weird animations. Some chat list entries are not collapsed by design: search results, saved messages sidebar and uncollapsed archive folder
+
 6.7.7 beta (20.04.26)
 
 - Proxy auto-rotation option.
@@ -302,6 +609,32 @@
 - Screen reader support for language list and country select box.
 - Fix stories in albums with reorder enabled.
 - Fix layout for RTL messages.
+
+6.7.6.3 (19.04.25)
+
+- Fix time with seconds in "join date" section in member context menu in member list
+- Disable time with seconds by default
+- Fix trailing space in time in service messages
+
+6.7.6.2 (18.04.26)
+
+- Always show edit timer. (In some cases, Telegram restricts edits only to first 48 hours, e.g. in private messages)
+- Option to hide per-chat wallpaper and use wallpaper from theme instead
+- Allow opening group from peer info (UX addition for "hide «join group» button")
+- Actual build scripts for using centos_env to share code between flatpak build, documentation and local incremental rebuilds
+
+6.7.6.1 (16.04.26)
+
+- Fix flatpak build not being able to send screenshots or other non-jpeg images
+- Flatpak builds use GNOME Runtime again and have instant view working, but are built from tdesktop centos_env container instead to avoid rebuilding Qt every time
+- Fix right part of username in chat being unclickable if user type icon is present
+- Drop broken "hide similar channels" patch and reintroduce a simpler one in its stead
+- Display forwarded message date without hover
+- Hide "join group" button in groups that don't require joining to write messages (use button in sidebar or group info to join)
+
+6.7.6.0 (15.04.26)
+
+- Upstream updated to 6.7.6
 
 6.7.6 (14.04.26)
 
@@ -318,6 +651,40 @@
 - Bring menus and fullscreen media viewer to active space on macOS.
 - Fix several poll display and voting menu issues.
 - Fix possible crashes in chats list, url auth and others.
+
+6.7.5.5 (14.04.26)
+
+- Unshare phone number by default when adding contact
+- Clickable links in bio
+- User type icon in username in chat messages (bot, channel, chat, forum, deleted account or unsafe third-party client user). This feature is borrowed from Kotatogram and recreated with simpler code and a bit less nicer look. It currently does not expand username click target, so don't aim too right. Current implementation unfortunately requires clicking on username to start showing warning and resets on restart requiring clicking again
+
+6.7.5.4 (13.04.26)
+
+- Flatpak builds now depend on KDE runtime instead of GNOME runtime. This has the implication of not using patched Qt anymore and broken webviews, e.g. in instant view or bot webapps, due to not bundling WebKitGTK. Manual from-source flatpak builds can opt out of this change by not applying the patch.
+- Default nixpak config now includes /usr/share/fonts to use system fonts correctly.
+- "Show messages from" was rewritten to more closely match tdesktop code.
+- Did you know that tdesktop already has "show messages from user"? Open context menu on message sender userpic in group chat and select "Search messages". Yukigram adds this option to message context menu and participant context menu (in participant list).
+
+6.7.5.3 (12.04.26)
+
+- Show member join date
+- Option to show message id instead of unconditionally showing (toggle is in the bottom of Experimental settings)
+- Show message id on hover unconditionally
+
+6.7.5.2 (11.04.26)
+
+- Disable D-Bus activation (unbreaks .desktop file under non-GNOME environments)
+- Fix default nixpak appId (from io.github.yukirgam to io.github.yukigram). If you used nixpak with default appId prior to v6.7.5.2, rename data directory in ~/.var/app to correct name before updating
+
+6.7.5.1 (10.04.26)
+
+- Support nix with flakes (through npins)
+- Binary caches for Nix and Flatpak
+
+6.7.5.0 (07.04.26)
+
+- Upstream updated to 6.7.5
+- Disable AI compose button by default
 
 6.7.5 (07.04.26)
 
@@ -337,6 +704,36 @@
 - Fix stale macOS tray icon colors after appearance switches.
 - Fix tooltip crash in top peers selector with small width.
 - Fix preserving markers after video quality switch in media view.
+
+6.7.3.0 (05.04.26)
+
+- Initial patch-based yukigram version
+- tg://nya handler
+- Disable sponsored messages
+- Immediate restart button
+- Allow disabling animoji
+- Right action comments
+- Control calls with MPRIS
+- Remove copy restrictions
+- Hide similar channels on join message (broken)
+- Allow forcing single column layout
+- Open location in OpenStreetMap
+- Support wide messages
+- Allow more accounts
+- Always show scheduled messages button option
+- Handle tg://openmessage and tg://user links
+- Disable AI summaries on messages
+- Show messages from user in more context menus
+- Show time with seconds option
+- Show sticker pack owner
+- Quick Recent Actions button
+- Quick Admin list button
+- Unregister url schemes
+- Show message id
+- Increase maxSignatureSize to accomodate time with seconds and message id
+- Disable AI editor button
+- Increase max media sizes
+- Forward (Alt+F), Copy (Alt+C), Steal (Alt+Shift+C) shortcuts
 
 6.7.3 (04.04.26)
 
