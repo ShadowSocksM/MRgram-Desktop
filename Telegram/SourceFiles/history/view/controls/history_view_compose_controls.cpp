@@ -111,6 +111,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "settings/sections/settings_premium.h"
 #include "support/support_common.h"
 #include "support/support_helper.h"
+#include "yukigram/settings/disable_up_edit.h"
 #include "ui/item_text_options.h"
 #include "ui/text/text_options.h"
 #include "ui/text/text_utilities.h"
@@ -2995,7 +2996,7 @@ void ComposeControls::initKeyHandler() {
 			_attachRequests.fire({});
 			return;
 		}
-		if (key == Qt::Key_Up && !hasModifiers) {
+		if (key == Qt::Key_Up && !hasModifiers && !Yukigram::Settings::DisableUpEdit->current()) {
 			if (!isEditingMessage()
 				&& _field->empty()
 				&& !replyingToMessage().replying()) {
