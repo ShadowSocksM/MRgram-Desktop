@@ -21,7 +21,7 @@ function(generate_appstream_changelog target_name changelog_path metadata_path)
         ${submodules_loc}/build/changelog2appstream.py
         -c "${changelog_path}"
         -m "${metadata_path}"
-        -n 10
+        -n 25
     COMMAND
         echo 1> ${gen_timestamp}
     COMMENT "Generating AppStream changelog (${target_name})"
