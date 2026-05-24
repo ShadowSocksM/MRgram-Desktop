@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/peers/edit_peer_permissions_box.h"
 
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "history/admin_log/history_admin_log_filter.h"
 #include "core/ui_integration.h"
 #include "data/stickers/data_custom_emoji.h"
@@ -86,10 +87,10 @@ constexpr auto kDefaultChargeStars = 10;
 		{ Flag::SendMusic, tr::lng_rights_chat_music(tr::now) },
 		{ Flag::SendVoiceMessages, tr::lng_rights_chat_voice_messages(tr::now) },
 		{ Flag::SendFiles, tr::lng_rights_chat_files(tr::now) },
-		{ Flag::SendStickers
-			| Flag::SendGifs
-			| Flag::SendGames
-			| Flag::SendInline, tr::lng_rights_chat_stickers(tr::now) },
+		{ Flag::SendStickers, ktr("box/edit-peer-permissions/rights/stickers") },
+		{ Flag::SendGifs, ktr("box/edit-peer-permissions/rights/gifs") },
+		{ Flag::SendGames, ktr("box/edit-peer-permissions/rights/games") },
+		{ Flag::SendInline, ktr("box/edit-peer-permissions/rights/inline") },
 		{ Flag::EmbedLinks, tr::lng_rights_chat_send_links(tr::now) },
 		{ Flag::SendPolls, tr::lng_rights_chat_send_polls(tr::now) },
 		{ Flag::SendReactions, tr::lng_rights_chat_send_reactions(tr::now) },
@@ -303,18 +304,6 @@ auto Dependencies(ChatRestrictions)
 	using Flag = ChatRestriction;
 
 	return {
-		// stickers <-> gifs
-		{ Flag::SendGifs, Flag::SendStickers },
-		{ Flag::SendStickers, Flag::SendGifs },
-
-		// stickers <-> games
-		{ Flag::SendGames, Flag::SendStickers },
-		{ Flag::SendStickers, Flag::SendGames },
-
-		// stickers <-> inline
-		{ Flag::SendInline, Flag::SendStickers },
-		{ Flag::SendStickers, Flag::SendInline },
-
 		// embed_links -> send_plain
 		{ Flag::EmbedLinks, Flag::SendOther },
 
@@ -1483,14 +1472,6 @@ ChatAdminRights DisabledByDefaultRestrictions(not_null<PeerData*> peer) {
 
 ChatRestrictions FixDependentRestrictions(ChatRestrictions restrictions) {
 	const auto &dependencies = Dependencies(restrictions);
-
-	// Fix iOS bug of saving send_inline like embed_links.
-	// We copy send_stickers to send_inline.
-	if (restrictions & ChatRestriction::SendStickers) {
-		restrictions |= ChatRestriction::SendInline;
-	} else {
-		restrictions &= ~ChatRestriction::SendInline;
-	}
 
 	// Apply the strictest.
 	const auto fixOne = [&] {

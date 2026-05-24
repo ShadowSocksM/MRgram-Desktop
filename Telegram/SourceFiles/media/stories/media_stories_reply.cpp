@@ -376,7 +376,7 @@ bool ReplyArea::sendExistingDocument(
 	const auto show = _controller->uiShow();
 	const auto error = Data::RestrictionError(
 		_data.peer,
-		ChatRestriction::SendStickers);
+		document->isGifv() ? ChatRestriction::SendGifs : ChatRestriction::SendStickers);
 	if (error) {
 		Data::ShowSendErrorToast(show, _data.peer, error);
 		return false;

@@ -896,7 +896,7 @@ bool ScheduledWidget::sendExistingDocument(
 		Api::MessageToSend messageToSend) {
 	const auto error = Data::RestrictionError(
 		_history->peer,
-		ChatRestriction::SendStickers);
+		document->isGifv() ? ChatRestriction::SendGifs : ChatRestriction::SendStickers);
 	if (error) {
 		Data::ShowSendErrorToast(controller(), _history->peer, error);
 		return false;

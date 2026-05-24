@@ -9968,7 +9968,7 @@ bool HistoryWidget::sendExistingDocument(
 	const auto ephemeralReply = session().ephemeralMessages()
 		.isEphemeralBotReply(messageToSend.action.replyTo.messageId);
 	const auto error = (_peer && !ephemeralReply)
-		? Data::RestrictionError(_peer, ChatRestriction::SendStickers)
+		? Data::RestrictionError(_peer, document->isGifv() ? ChatRestriction::SendGifs : ChatRestriction::SendStickers)
 		: Data::SendError();
 	if (error) {
 		Data::ShowSendErrorToast(controller(), _peer, error);

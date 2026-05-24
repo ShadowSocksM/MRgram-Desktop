@@ -98,6 +98,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_saved_messages.h"
 #include "data/data_saved_sublist.h"
 #include "data/data_session.h"
+#include "data/data_document.h"
 #include "data/data_user.h"
 #include "data/data_chat.h"
 #include "data/data_channel.h"
@@ -3124,7 +3125,7 @@ bool ChatWidget::sendExistingDocument(
 	const auto ephemeralReply = session().ephemeralMessages()
 		.isEphemeralBotReply(messageToSend.action.replyTo.messageId);
 	const auto error = !ephemeralReply
-		? Data::RestrictionError(_peer, ChatRestriction::SendStickers)
+		? Data::RestrictionError(_peer, document->isGifv() ? ChatRestriction::SendGifs : ChatRestriction::SendStickers)
 		: Data::SendError();
 	if (error) {
 		Data::ShowSendErrorToast(controller(), _peer, error);

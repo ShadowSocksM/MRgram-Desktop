@@ -345,10 +345,10 @@ QString GeneratePermissionsChangeText(
 		{
 			Flag::SendVideoMessages,
 			tr::lng_admin_log_banned_send_video_messages },
-		{ Flag::SendStickers
-			| Flag::SendGifs
-			| Flag::SendInline
-			| Flag::SendGames, tr::lng_admin_log_banned_send_stickers },
+		{ Flag::SendStickers, tr::lng_admin_log_banned_send_stickers_only },
+		{ Flag::SendGifs, tr::lng_admin_log_banned_send_gifs },
+		{ Flag::SendInline, tr::lng_admin_log_banned_send_inline },
+		{ Flag::SendGames, tr::lng_admin_log_banned_send_games },
 		{ Flag::EmbedLinks, tr::lng_admin_log_banned_embed_links },
 		{ Flag::SendReactions, tr::lng_admin_log_banned_send_reactions },
 		{ Flag::SendPolls, tr::lng_admin_log_banned_send_polls },
