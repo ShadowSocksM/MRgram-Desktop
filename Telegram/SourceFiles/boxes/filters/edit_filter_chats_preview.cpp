@@ -9,8 +9,12 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include "boxes/filters/edit_filter_chats_list.h"
 #include "data/data_peer.h"
+#include "data/data_user.h"
+#include "data/data_chat.h"
+#include "data/data_channel.h"
 #include "history/history.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "ui/text/text_options.h"
 #include "ui/widgets/buttons.h"
 #include "ui/painter.h"
@@ -104,6 +108,8 @@ void FilterChatsPreview::paintEvent(QPaintEvent *e) {
 	const auto nameLeft = st.namePosition.x();
 	p.setFont(st::windowFilterSmallItem.nameStyle.font);
 	const auto nameTop = st.namePosition.y();
+	const auto chatNameTop = st.chatNamePosition.y();
+	const auto chatDescTop = st.chatDescPosition.y();
 	for (const auto &[flag, button] : _removeFlag) {
 		PaintFilterChatsTypeIcon(
 			p,
@@ -121,6 +127,7 @@ void FilterChatsPreview::paintEvent(QPaintEvent *e) {
 			FilterChatsTypeName(flag));
 		top += st.height;
 	}
+	QStringList statuses;
 	for (auto &[history, userpic, name, button] : _removePeer) {
 		const auto peer = history->peer;
 		const auto savedMessages = peer->isSelf();
@@ -168,6 +175,56 @@ void FilterChatsPreview::paintEvent(QPaintEvent *e) {
 				top + iconTop,
 				width(),
 				st.photoSize);
+			if (const auto user = history->peer->asUser()) {
+				const auto flags = user->flags();
+
+				if (user->isInaccessible()) {
+					statuses << tr::lng_chat_status_unaccessible(tr::now);
+				} else {
+					if (user->isSupport()) {
+						statuses << tr::lng_status_support(tr::now);
+					}
+					if (user->isBot()) {
+						statuses << tr::lng_status_bot(tr::now);
+					} else if (flags & UserDataFlag::MutualContact) {
+						statuses << ktr("box/peer-list/contact/mutual");
+					} else if (flags & UserDataFlag::Contact) {
+						statuses << ktr("box/peer-list/contact/yes");
+					} else {
+						statuses << ktr("box/peer-list/contact/no");
+					}
+				}
+			} else if (const auto chat = history->peer->asChat()) {
+				statuses << ktr("box/peer-list/group");
+				if (!chat->amIn()) {
+					statuses << ktr("box/peer-list/status/not-member");
+				} else if (chat->amCreator()) {
+					statuses << ktr("box/peer-list/status/owner");
+				} else if (chat->hasAdminRights()) {
+					statuses << ktr("box/peer-list/status/admin");
+				}
+				if (chat->count > 0) {
+					statuses << tr::lng_chat_status_members(tr::now, lt_count_decimal, chat->count);
+				}
+			} else if (const auto channel = history->peer->asChannel()) {
+				statuses << ktr(channel->isCommunity() ? "box/peer-list/channel-like/community"
+					: channel->isMonoforum() ? "box/peer-list/channel-like/monoforum"
+					: channel->isForum() ? "box/peer-list/channel-like/forum"
+					: channel->isMegagroup() ? "box/peer-list/channel-like/supergroup"
+					: channel->isBroadcast() ? "box/peer-list/channel-like/broadcast"
+					: "box/peer-list/channel-like/unknown");
+				if (!channel->amIn()) {
+					statuses << ktr(channel->isBroadcast() ? "box/peer-list/status/not-subscribed" : "box/peer-list/status/not-member");
+				} else if (channel->amCreator()) {
+					statuses << ktr("box/peer-list/status/owner");
+				} else if (channel->hasAdminRights()) {
+					statuses << ktr("box/peer-list/status/admin");
+				}
+				if (channel->membersCountKnown()) {
+					const auto phrase = channel->isBroadcast() ? tr::lng_chat_status_subscribers : tr::lng_chat_status_members;
+					statuses << phrase(tr::now, lt_count_decimal, channel->membersCount());
+				}
+			}
 			p.setPen(st::contactsNameFg);
 			if (name.isEmpty()) {
 				name.setText(
@@ -175,12 +232,17 @@ void FilterChatsPreview::paintEvent(QPaintEvent *e) {
 					history->peer->name(),
 					Ui::NameTextOptions());
 			}
-			name.drawLeftElided(
-				p,
-				nameLeft,
-				top + nameTop,
-				button->x() - nameLeft,
-				width());
+			if (statuses.empty()) {
+				name.drawLeftElided(p, nameLeft, top + nameTop, button->x() - nameLeft, width());
+			} else {
+				name.drawLeftElided(p, nameLeft, top + chatNameTop, button->x() - nameLeft, width());
+
+				p.setPen(st::windowSubTextFg);
+				p.setFont(st::windowFilterChatDescStyle.font);
+				p.drawTextLeft(nameLeft, top + chatDescTop, width(), statuses.join(", "));
+
+				statuses.clear();
+			}
 		}
 		top += st.height;
 	}
