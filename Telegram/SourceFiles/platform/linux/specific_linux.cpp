@@ -700,16 +700,6 @@ QString psAppDataPath() {
 		return false;
 	};
 
-	// Previously we used ~/.TelegramDesktop, so look there first.
-	// If we find data there, we should still use it.
-	auto home = QDir::homePath();
-	if (!home.isEmpty()) {
-		auto oldPath = home + u"/.TelegramDesktop/"_q;
-		if (hasPreviousProfileAt(oldPath)) {
-			return oldPath;
-		}
-	}
-
 	const auto prevPath = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation) + "/Yukigram/";
 	if (hasPreviousProfileAt(prevPath)) {
 		return prevPath;
