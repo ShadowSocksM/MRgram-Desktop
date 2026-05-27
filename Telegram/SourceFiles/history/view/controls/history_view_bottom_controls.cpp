@@ -21,6 +21,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_session.h"
 #include "data/data_user.h"
 #include "data/notify/data_notify_settings.h"
+#include "yukigram/settings/hide_bottom_bar.h"
 #include "history/history.h"
 #include "history/history_item_helpers.h"
 #include "history/view/controls/compose_controls_common.h"
@@ -544,6 +545,7 @@ bool BottomControls::isJoinChannel() const {
 		return false;
 	}
 	if (const auto channel = _peer->asChannel()) {
+		if (Yukigram::Settings::HideBottomBar->current()) return false;
 		return !channel->amIn() && !channel->isMonoforum();
 	}
 	return false;
@@ -560,6 +562,7 @@ bool BottomControls::isJoinGroup() const {
 	const auto canSend = !channel->isForum()
 		? Data::CanSendAnything(channel)
 		: (_topic && Data::CanSendAnything(_topic));
+	if (Yukigram::Settings::HideBottomBar->current()) return false;
 	return !channel->amIn() && !canSend;
 }
 
@@ -567,6 +570,7 @@ bool BottomControls::isMuteUnmute() const {
 	if (_mode != BottomControlsMode::History) {
 		return false;
 	}
+	if (Yukigram::Settings::HideBottomBar->current()) return false;
 	return (_peer->isBroadcast() && !_peer->asChannel()->canPostMessages())
 		|| (_peer->isGigagroup() && !Data::CanSendAnything(_peer))
 		|| _peer->isRepliesChat()

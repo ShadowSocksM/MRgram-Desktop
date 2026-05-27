@@ -104,6 +104,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_premium_limits.h" // Data::PremiumLimits.
 #include "data/stickers/data_stickers.h"
 #include "data/stickers/data_custom_emoji.h"
+#include "yukigram/settings/hide_bottom_bar.h"
 #include "history/history.h"
 #include "history/history_item.h"
 #include "history/history_item_helpers.h" // GetErrorForSending.
@@ -555,6 +556,12 @@ HistoryWidget::HistoryWidget(
 	}, lifetime());
 
 	_forwardPanel->itemsUpdated(
+	) | rpl::on_next([=] {
+		updateControlsVisibility();
+		updateControlsGeometry();
+	}, lifetime());
+
+	Yukigram::Settings::HideBottomBar->changes(
 	) | rpl::on_next([=] {
 		updateControlsVisibility();
 		updateControlsGeometry();
@@ -6665,6 +6672,7 @@ bool HistoryWidget::isBotStart() const {
 	const auto user = _peer ? _peer->asUser() : nullptr;
 	if (!user
 		|| !user->isBot()
+		// || (user->isBlocked() && Yukigram::Settings::HideBottomBar->current())
 		|| !_canSendMessages) {
 		return false;
 	} else if (!user->botInfo->startToken.isEmpty()) {
@@ -6680,10 +6688,12 @@ bool HistoryWidget::isReportMessages() const {
 }
 
 bool HistoryWidget::isBlocked() const {
+	// if (Yukigram::Settings::HideBottomBar->current()) return false;
 	return _peer && _peer->isUser() && _peer->asUser()->isBlocked();
 }
 
 bool HistoryWidget::isJoinChannel() const {
+	if (Yukigram::Settings::HideBottomBar->current()) return false;
 	if (const auto channel = _peer ? _peer->asChannel() : nullptr) {
 		return !channel->amIn() && !channel->isMonoforum() && !_canSendMessages;
 	}
@@ -6695,6 +6705,7 @@ bool HistoryWidget::isChoosingTheme() const {
 }
 
 bool HistoryWidget::isMuteUnmute() const {
+	if (Yukigram::Settings::HideBottomBar->current()) return false;
 	return _peer
 		&& ((_peer->isBroadcast() && !_peer->asChannel()->canPostMessages())
 			|| (_peer->isGigagroup() && !Data::CanSendAnything(_peer))
