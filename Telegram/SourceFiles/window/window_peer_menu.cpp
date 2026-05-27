@@ -1062,7 +1062,7 @@ void Filler::addDirectMessages() {
 		return;
 	}
 	const auto monoforum = channel->broadcastMonoforum();
-	if (!monoforum || !monoforum->amMonoforumAdmin()) {
+	if (!monoforum) {
 		return;
 	}
 	const auto navigation = _controller;
