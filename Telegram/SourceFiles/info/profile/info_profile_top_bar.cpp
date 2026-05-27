@@ -60,6 +60,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/userpic/info_userpic_emoji_builder_common.h"
 #include "info/userpic/info_userpic_emoji_builder_menu_item.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "lottie/lottie_animation.h"
 #include "lottie/lottie_multi_player.h"
 #include "main/main_session.h"
@@ -1019,6 +1020,7 @@ void TopBar::setupActions(not_null<Window::SessionController*> controller) {
 	if (canJoin) {
 		const auto join = Ui::CreateChild<TopBarActionButton>(
 			this,
+			(channel->requestToJoin() && !channel->amCreator()) ? ktr("info/profile/top-bar/join/apply") :
 			tr::lng_profile_action_short_join(tr::now),
 			st::infoProfileTopBarActionJoin);
 		join->setClickedCallback([=] {
