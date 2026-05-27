@@ -12,6 +12,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_cloud_file.h"
 #include "data/data_location.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "lang/lang_tag.h"
 #include "history/history.h"
 #include "history/history_item.h"
@@ -22,6 +23,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/history_view_text_helper.h"
 #include "history/view/media/menu/history_view_poll_menu.h"
 #include "calls/calls_instance.h"
+#include "ui/boxes/confirm_box.h"
 #include "ui/widgets/dropdown_menu.h"
 #include "ui/widgets/menu/menu_action.h"
 #include "ui/chat/message_bubble.h"
@@ -2547,8 +2549,11 @@ void Poll::updateTexts() {
 	if (_flags != _poll->flags() || _headerPart->_subtitle.isEmpty()) {
 		using Flag = PollData::Flag;
 		_flags = _poll->flags();
-		_headerPart->_subtitle.setText(
-			st::msgDateTextStyle,
+		_headerPart->_subtitle.setText(st::msgDateTextStyle, ktr(
+			(_flags & Flag::RevotingDisabled)
+			? "media/poll/revotes/forbidden"
+			: "media/poll/revotes/allowed",
+			{ "inner",
 			((_flags & Flag::Closed)
 				? tr::lng_polls_closed(tr::now)
 				: (_flags & Flag::Quiz)
@@ -2557,7 +2562,7 @@ void Poll::updateTexts() {
 					: tr::lng_polls_anonymous_quiz(tr::now))
 				: ((_flags & Flag::PublicVotes)
 					? tr::lng_polls_public(tr::now)
-					: tr::lng_polls_anonymous(tr::now))));
+					: tr::lng_polls_anonymous(tr::now))) }));
 	}
 	if (_footerPart->_adminBackVoteLabel.isEmpty()) {
 		_footerPart->_adminBackVoteLabel.setMarkedText(
@@ -3185,17 +3190,39 @@ ClickHandlerPtr Poll::Options::createAnswerClickHandler(
 			}
 		}));
 	} else {
-		result = std::make_shared<LambdaClickHandler>(crl::guard(_owner, [=] {
+		result = std::make_shared<LambdaClickHandler>(crl::guard(_owner, [=](ClickContext context) {
 			if (Logs::DebugEnabled() && base::IsCtrlPressed()) {
 				TextUtilities::SetClipboardText(
 					TextForMimeData::Simple(_owner->_poll->debugString()));
 				return;
 			}
 			if (_owner->canVote()) {
-				_owner->_optionsPart->_votedFromHere = true;
-				_owner->history()->session().api().polls().sendVotes(
-					_owner->_parent->data()->fullId(),
-					{ option });
+				auto castVote = [&] {
+					_owner->_optionsPart->_votedFromHere = true;
+					_owner->history()->session().api().polls().sendVotes(
+						_owner->_parent->data()->fullId(),
+						{ option });
+				};
+
+				const auto my = context.other.value<ClickHandlerContext>();
+				const auto controller = my.sessionWindow.get();
+				if (!controller || (&controller->session() != &_owner->history()->session())) {
+					return;
+				}
+
+				if (_owner->_flags & PollData::Flag::RevotingDisabled) {
+					controller->show(Ui::MakeConfirmBox({
+						.text = rktr("media/poll/forbidden-revotes-warning/text"),
+						.confirmed = [=](Fn<void()> &&close) {
+							castVote();
+							close();
+						},
+						.confirmText = rktr("media/poll/forbidden-revotes-warning/confirm"),
+						.cancelText = rktr("media/poll/forbidden-revotes-warning/cancel"),
+					}));
+				} else {
+					castVote();
+				}
 			} else if (_owner->voteRestricted()) {
 				_owner->showVoteRestrictionToast();
 			} else if (_owner->showVotes()) {
