@@ -24,6 +24,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_session.h"
 #include "data/data_web_page.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "ui/item_text_options.h"
 #include "ui/chat/chat_style.h"
 #include "ui/chat/message_bubble.h"
@@ -33,6 +34,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/painter.h"
 #include "ui/power_saving.h"
 #include "ui/text/text_utilities.h"
+#include "yukigram/settings/old_style_spoilers.h"
 #include "core/ui_integration.h"
 #include "styles/style_chat.h"
 #include "styles/style_chat_helpers.h"
@@ -364,6 +366,18 @@ void Media::fillImageSpoiler(
 		Ui::DefaultImageSpoiler().frame(
 			spoiler->animation->index(context.now, pausedSpoiler)),
 		spoiler->cornerCache);
+if (Yukigram::Settings::OldStyleSpoilers->current()) {
+	const auto center = rect.topRight() + QPoint(style::ConvertScale(-24), style::ConvertScale(24));
+	const auto iconRect = QRect(rect.topRight() + QPoint(style::ConvertScale(-40), style::ConvertScale(8)), style::ConvertScale(QSize(32, 32)));
+	const auto radius = style::ConvertScale(18);
+	p.setPen(Qt::NoPen);
+	p.setBrush(st::msgDateImgBg->c);
+	{
+		auto hq = PainterHighQualityEnabler(p);
+		p.drawEllipse(center, radius, radius);
+	}
+	st::menuIconSpoiler.paintInCenter(p, iconRect);
+}
 }
 
 void Media::drawSpoilerTag(

@@ -27,6 +27,8 @@ using SpoilerRect = InputFieldSpoilerRect;
 
 } // namespace
 
+void FillSpoilerRectEx(QPainter &p, QRect rect, const SpoilerMessFrame &frame, QPoint originShift, bool forText = false);
+
 class FieldSpoilerOverlay final : public RpWidget {
 public:
 	FieldSpoilerOverlay(
@@ -97,7 +99,7 @@ void FieldSpoilerOverlay::paintEvent(QPaintEvent *e) {
 		}
 		p->setOpacity(fgOpacity);
 		const auto shift = QPoint(0, *topShift) - rect.geometry.topLeft();
-		FillSpoilerRect(*p, rect.geometry, *frame, shift);
+		FillSpoilerRectEx(*p, rect.geometry, *frame, shift, true);
 	}
 }
 

@@ -14,6 +14,10 @@
 
 #include <QtGui/QPaintEngine>
 
+namespace Ui {
+void FillSpoilerRectEx(QPainter &p, QRect rect, const SpoilerMessFrame &frame, QPoint originShift, bool forText = false);
+}
+
 namespace Ui::Text {
 namespace {
 
@@ -1588,7 +1592,7 @@ void Renderer::paintSpoilerRects(
 	if (_spoilerCache) {
 		const auto frame = _spoilerCache->lookup(color->c)->frame(index);
 		for (const auto &rect : rects) {
-			Ui::FillSpoilerRect(*_p, rect, frame, -rect.topLeft());
+			Ui::FillSpoilerRectEx(*_p, rect, frame, -rect.topLeft(), true);
 		}
 	} else {
 		// Show forgotten spoiler context part.

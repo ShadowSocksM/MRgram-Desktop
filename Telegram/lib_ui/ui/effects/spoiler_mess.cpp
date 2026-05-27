@@ -10,6 +10,7 @@
 #include "ui/image/image_prepare.h"
 #include "ui/painter.h"
 #include "ui/integration.h"
+#include "styles/style_basic.h"
 #include "base/random.h"
 #include "base/flags.h"
 
@@ -485,12 +486,31 @@ SpoilerMessCached GenerateSpoilerMess(
 		size);
 }
 
+extern bool Yukigram_OldStyleSpoilers;
+bool Yukigram_OldStyleSpoilers = false;
+
+void FillSpoilerRectEx(QPainter &p, QRect rect, const SpoilerMessFrame &frame, QPoint originShift, bool forText = false);
+
 void FillSpoilerRect(
 		QPainter &p,
 		QRect rect,
 		const SpoilerMessFrame &frame,
 		QPoint originShift) {
+	return FillSpoilerRectEx(p, rect, frame, originShift);
+}
+
+void FillSpoilerRectEx(QPainter &p, QRect rect, const SpoilerMessFrame &frame, QPoint originShift, bool forText) {
 	if (rect.isEmpty()) {
+		return;
+	}
+	if (Yukigram_OldStyleSpoilers) {
+		if (!forText) {
+			p.fillRect(rect, Qt::transparent);
+			return;
+		}
+		auto path = QPainterPath();
+		path.addRoundedRect(rect, st::roundRadiusSmall, st::roundRadiusSmall);
+		p.fillPath(path, st::defaultTextPalette.spoilerFg->c);
 		return;
 	}
 	const auto &image = *frame.image;
