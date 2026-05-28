@@ -1195,6 +1195,7 @@ void TopBarWidget::updateControlsGeometry() {
 		};
 		auto first = (Ui::RoundButton*)(nullptr);
 		auto last = (Ui::RoundButton*)(nullptr);
+	if (false) {
 		for (const auto button : buttons) {
 			if (!button->isHidden()) {
 				if (!first) {
@@ -1203,6 +1204,7 @@ void TopBarWidget::updateControlsGeometry() {
 				last = button;
 			}
 		}
+	}
 		for (const auto button : buttons) {
 			if (button->isHidden()) {
 				continue;
