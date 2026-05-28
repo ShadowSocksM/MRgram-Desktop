@@ -59,6 +59,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "settings/sections/settings_premium.h"
 #include "settings/sections/settings_privacy_security.h"
 #include "settings/settings_scale_preview.h"
+#include "settings/sections/settings_yukigram.h"
 #include "storage/localstorage.h"
 #include "ui/basic_click_handlers.h"
 #include "ui/boxes/confirm_box.h"
@@ -451,6 +452,13 @@ void BuildSectionButtons(SectionBuilder &builder) {
 			controller->show(Box(PowerSavingBox, PowerSaving::Flags()));
 		},
 		.keywords = { u"battery"_q, u"animations"_q, u"power"_q, u"saving"_q },
+	});
+
+	builder.addSectionButton({
+		.title = tr::lng_settings_yukigram(),
+		.targetSection = YukigramId(),
+		.icon = { &st::menuIconSettings },
+		.keywords = { u"yukigram"_q },
 	});
 
 	builder.addButton({
