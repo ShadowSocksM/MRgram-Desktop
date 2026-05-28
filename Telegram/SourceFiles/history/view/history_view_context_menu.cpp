@@ -2138,7 +2138,6 @@ void FillPollOptionPage(
 		return;
 	}
 	if (!poll->closed()
-		&& !poll->quiz()
 		&& poll->voted()
 		&& !poll->revotingDisabled()) {
 		menu->addAction(

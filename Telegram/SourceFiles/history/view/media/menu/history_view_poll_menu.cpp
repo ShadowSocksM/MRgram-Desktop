@@ -198,8 +198,7 @@ void FillPollAnswerMenu(
 		}
 	}
 	if (!option.isEmpty()
-		&& !poll->closed()
-		&& !poll->quiz()) {
+		&& !poll->closed()) {
 		if (poll->voted()
 			&& !poll->revotingDisabled()) {
 			menu->addAction(
