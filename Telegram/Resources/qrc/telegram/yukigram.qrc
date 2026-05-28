@@ -1,4 +1,7 @@
 <RCC>
+  <qresource prefix="/yukigram_lang">
+    <file alias="en.json">../../Telegram/Resources/langs/yukigram/en.json</file>
+  </qresource>
   <qresource prefix="/misc">
     <file alias="io.github.yukigram.desktop">@CMAKE_CURRENT_BINARY_DIR@/@YUKIGRAM_APP_ID@.desktop</file>
   </qresource>
