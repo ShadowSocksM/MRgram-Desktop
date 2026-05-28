@@ -13,6 +13,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/boxes/confirm_box.h"
 #include "lang/lang_file_parser.h"
 #include "lang/lang_tag.h" // kTextCommandLangTag.
+#include "yukigram/lang.h"
 #include "base/platform/base_platform_info.h"
 #include "base/qthelp_regex.h"
 
@@ -249,6 +250,7 @@ Instance::Instance(not_null<Instance*> derived, const PrivateTag &)
 
 void Instance::switchToId(const Language &data) {
 	reset(data);
+	Yukigram::Lang::Reload();
 	if (_id == u"#TEST_X"_q || _id == u"#TEST_0"_q) {
 		for (auto &value : _values) {
 			value = PrepareTestValue(value, _id[5]);
@@ -274,6 +276,7 @@ void Instance::setBaseId(const QString &baseId, const QString &pluralId) {
 void Instance::switchToCustomFile(const QString &filePath) {
 	if (loadFromCustomFile(filePath)) {
 		Local::writeLangPack();
+		Yukigram::Lang::Reload();
 		_updated.fire({});
 	}
 }

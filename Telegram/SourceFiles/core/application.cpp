@@ -53,6 +53,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "lang/lang_cloud_manager.h"
 #include "lang/lang_hardcoded.h"
 #include "lang/lang_instance.h"
+#include "yukigram/lang.h"
 #include "inline_bots/bot_attach_web_view.h"
 #include "mainwidget.h"
 #include "tray.h"
@@ -316,6 +317,7 @@ void Application::run() {
 	Test::ApplyStartupOverrides();
 
 	ValidateScale();
+	Yukigram::Lang::Reload();
 
 	refreshGlobalProxy(); // Depends on app settings being read.
 
