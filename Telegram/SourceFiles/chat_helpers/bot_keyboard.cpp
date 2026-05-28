@@ -26,10 +26,10 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 namespace {
 
 const auto kBotKeyboardRounding = Ui::BubbleRounding{
-	Ui::BubbleCornerRounding::Large,
-	Ui::BubbleCornerRounding::Large,
-	Ui::BubbleCornerRounding::Large,
-	Ui::BubbleCornerRounding::Large,
+	Ui::BubbleCornerRounding::Small,
+	Ui::BubbleCornerRounding::Small,
+	Ui::BubbleCornerRounding::Small,
+	Ui::BubbleCornerRounding::Small,
 };
 
 class Style : public ReplyKeyboard::Style {
