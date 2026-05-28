@@ -409,8 +409,11 @@ void RoundButton::setCornerRadii(
 	update();
 }
 
+extern bool Yukigram_NoShoutButtons;
+bool Yukigram_NoShoutButtons = false;
+
 void RoundButton::resizeToText(const TextWithEntities &text) {
-	if (_transform == RoundButtonTextTransform::ToUpper) {
+	if (!Yukigram_NoShoutButtons && _transform == RoundButtonTextTransform::ToUpper) {
 		_text.setMarkedText(
 			_st.style,
 			{ text.text.toUpper(), text.entities },
