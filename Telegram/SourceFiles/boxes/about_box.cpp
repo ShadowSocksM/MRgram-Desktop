@@ -14,6 +14,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/update_checker.h"
 #include "core/version.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "ui/boxes/confirm_box.h"
 #include "ui/painter.h"
 #include "ui/rect.h"
@@ -36,10 +37,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 namespace {
 
 rpl::producer<TextWithEntities> Text1() {
-	return tr::lng_about_text1(
-		lt_api_link,
-		tr::lng_about_text1_api(tr::url(u"https://core.telegram.org/api"_q)),
-		tr::marked);
+	return rktre("about/1/text",
+		{ "tdesktop_link", Ui::Text::Link(ktr("about/1/tdesktop"), "https://desktop.telegram.org/") });
 }
 
 rpl::producer<TextWithEntities> Text2() {
@@ -56,10 +55,9 @@ rpl::producer<TextWithEntities> Text2() {
 }
 
 rpl::producer<TextWithEntities> Text3() {
-	return tr::lng_about_text3(
-		lt_faq_link,
-		tr::lng_about_text3_faq(tr::url(telegramFaqLink())),
-		tr::marked);
+	return rktre("about/3/text",
+		{ "channel_link", Ui::Text::Link(ktr("about/3/channel"), "https://telegram.me/yukigram") },
+		{ "faq_link", Ui::Text::Link(tr::lng_about_text3_faq(tr::now), telegramFaqLink()) });
 }
 
 } // namespace
@@ -331,4 +329,3 @@ void ArchiveHintBox(
 		box->addButton(std::move(button));
 	}
 }
-

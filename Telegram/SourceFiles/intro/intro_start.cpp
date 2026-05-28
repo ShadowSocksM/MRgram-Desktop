@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "intro/intro_start.h"
 
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "intro/intro_qr.h"
 #include "intro/intro_phone.h"
 #include "ui/widgets/buttons.h"
@@ -25,7 +26,7 @@ StartWidget::StartWidget(
 : Step(parent, account, data, true) {
 	setMouseTracking(true);
 	setTitleText(rpl::single(u"Yukigram"_q));
-	setDescriptionText(tr::lng_intro_about());
+	setDescriptionText(ktr("intro/about"));
 	show();
 }
 
