@@ -744,6 +744,7 @@ FillMenuResult FillSendMenu(
 		? *iconsOverride
 		: st::defaultComposeIcons;
 
+	menu->addAction(tr::lng_send_button(tr::now), [=] { action({}, details); }, &st::menuIconSend);
 	if (sending && type != Type::Reminder) {
 		menu->addAction(
 			tr::lng_send_silent_message(tr::now),
