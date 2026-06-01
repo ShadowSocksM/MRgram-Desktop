@@ -25,6 +25,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/history_item_components.h"
 #include "history/history_item_helpers.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "main/main_session.h"
 #include "ui/chat/chat_style.h"
 #include "ui/effects/ripple_animation.h"
@@ -717,8 +718,8 @@ void Reply::updateName(
 		_stateText = ((fields.messageId || fields.storyId) && !unavailable)
 			? tr::lng_profile_loading(tr::now)
 			: fields.storyId
-			? tr::lng_deleted_story(tr::now)
-			: tr::lng_deleted_message(tr::now);
+			? ktr("history/deleted/story", { "id", QString::number(fields.storyId) })
+			: ktr("history/deleted/message", { "id", QString::number(fields.messageId.bare) });
 		const auto phraseWidth = st::msgDateFont->width(_stateText);
 		_maxWidth = unavailable
 			? phraseWidth
