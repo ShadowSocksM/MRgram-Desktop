@@ -17,6 +17,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "media/streaming/media_streaming_instance.h"
 #include "media/view/media_view_playback_progress.h"
 #include "media/player/media_player_instance.h"
+#include "yukigram/settings/unround_messages.h"
 #include "window/window_session_controller.h"
 #include "window/section_widget.h"
 #include "core/application.h"
@@ -57,7 +58,9 @@ bool RoundPainter::fillFrame(const QSize &size) {
 		if (_roundingMask.size() != request.outer) {
 			_roundingMask = Images::EllipseMask(frameInner().size());
 		}
+	if (!Yukigram::Settings::UnroundMessages->current()) {
 		request.mask = _roundingMask;
+	}
 		auto frame = streamed->frame(request);
 		if (!frame.isNull()) {
 			_frame.fill(Qt::transparent);
@@ -75,7 +78,11 @@ bool RoundPainter::fillFrame(const QSize &size) {
 		PainterHighQualityEnabler hq(p);
 		p.setPen(Qt::NoPen);
 		p.setBrush(st::imageBg);
+	if (!Yukigram::Settings::UnroundMessages->current()) {
 		p.drawEllipse(frameInner());
+	} else {
+		p.drawRect(frameInner());
+	}
 	}
 	return false;
 }

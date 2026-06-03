@@ -40,6 +40,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/view/media/history_view_video_message_seek.h"
 #include "history/view/media/history_view_video_status.h"
 #include "window/window_session_controller.h"
+#include "yukigram/settings/unround_messages.h"
 #include "core/application.h" // Application::showDocument.
 #include "core/core_settings.h"
 #include "ui/chat/attach/attach_prepare.h"
@@ -753,8 +754,10 @@ void Gif::draw(Painter &p, const PaintContext &context) const {
 			} else {
 				displayMute = true;
 			}
+		if (!Yukigram::Settings::UnroundMessages->current()) {
 			validateRoundingMask(request.outer);
 			request.mask = _roundingMask;
+		}
 		} else {
 			request.rounding = MediaRoundingMask(rounding);
 		}
@@ -811,7 +814,11 @@ void Gif::draw(Painter &p, const PaintContext &context) const {
 				auto q = QPainter(&frame);
 				fillImageSpoiler(q, _spoiler.get(), rthumb, context);
 			}
+		if (!Yukigram::Settings::UnroundMessages->current()) {
 			p.drawImage(rthumb.topLeft(), Images::Circle(std::move(frame)));
+		} else {
+			p.drawImage(rthumb.topLeft(), std::move(frame));
+		}
 		}
 		p.setOpacity(1.);
 	}
@@ -1248,9 +1255,13 @@ void Gif::validateThumbCache(
 		return;
 	}
 	auto cache = prepareThumbCache(scaled);
+if (!Yukigram::Settings::UnroundMessages->current()) {
 	_thumbCache = isEllipse
 		? Images::Circle(std::move(cache))
 		: Images::Round(std::move(cache), MediaRoundingMask(rounding));
+} else {
+	_thumbCache = std::move(cache);
+}
 	_thumbCacheRounding = rounding;
 	_thumbCacheBlurred = blurred;
 }
