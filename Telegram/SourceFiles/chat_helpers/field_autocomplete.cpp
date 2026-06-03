@@ -1579,6 +1579,8 @@ void FieldAutocomplete::Inner::mousePressEvent(QMouseEvent *e) {
 			_down = _sel;
 			_previewTimer.callOnce(QApplication::startDragTime());
 		}
+	} else if (e->button() == Qt::RightButton && !_mrows->empty() && !_overDelete) {
+		chooseSelected(FieldAutocomplete::ChooseMethod::ByClick);
 	}
 }
 
@@ -1906,7 +1908,7 @@ void InitFieldAutocomplete(
 		const auto user = data.user;
 		const auto ctrlClick = base::IsCtrlPressed()
 			&& data.method == FieldAutocomplete::ChooseMethod::ByClick;
-		if (data.mention.isEmpty() || ctrlClick) {
+		if (data.mention.isEmpty() || ctrlClick || QGuiApplication::mouseButtons() == Qt::RightButton) {
 			field->insertTag(
 				user->firstName.isEmpty() ? user->name() : user->firstName,
 				PrepareMentionTag(user));
