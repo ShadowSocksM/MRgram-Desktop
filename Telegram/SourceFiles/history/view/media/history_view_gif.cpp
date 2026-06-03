@@ -486,6 +486,7 @@ QSize Gif::countCurrentSize(int newWidth) {
 		auto forwarded = item->Get<HistoryMessageForwarded>();
 		RefreshEphemeralPlate(_parent, _ephemeral.text);
 		if (via || reply || forwarded || !_ephemeral.text.isEmpty()) {
+			const auto prevWidth = newWidth;
 			auto additional = additionalWidth(reply, via, forwarded);
 			newWidth += additional;
 			accumulate_min(newWidth, availableWidth);
@@ -503,9 +504,14 @@ QSize Gif::countCurrentSize(int newWidth) {
 			const auto rectw = _ephemeral.onTop
 				? std::min(newWidth - st::msgReplyPadding.left(), additional)
 				: (newWidth - usew - st::msgReplyPadding.left());
-			const auto availw = rectw
+			auto availw = rectw
 				- st::msgReplyPadding.left()
 				- st::msgReplyPadding.left();
+			const auto diff = newWidth - prevWidth;
+			if (diff < 128) {
+				newHeight -= (128 - diff);
+				availw = 128;
+			}
 			if (!forwarded && via) {
 				via->resize(availw);
 			}
