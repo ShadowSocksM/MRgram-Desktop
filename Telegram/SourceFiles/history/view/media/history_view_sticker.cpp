@@ -50,6 +50,7 @@ constexpr auto kMessageEffectMultiplier = 2;
 base::options::option<int> OptionStickerSize({
 	.id = "sticker-size",
 	.name = "Sticker size",
+	.defaultValue = 224,
 });
 
 [[nodiscard]] QImage CacheDiceImage(

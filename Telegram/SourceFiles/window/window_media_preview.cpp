@@ -25,6 +25,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/ui_utility.h"
 #include "window/window_session_controller.h"
 #include "yukigram/settings/large_sticker_preview.h"
+#include "yukigram/settings/sticker_size.h"
 #include "styles/style_chat_helpers.h"
 #include "styles/style_chat.h"
 
@@ -378,8 +379,8 @@ QSize MediaPreviewWidget::currentDimensions() const {
 		const auto max = _maxContentSize
 			? _maxContentSize
 			: Yukigram::Settings::LargeStickerPreview->current()
-			? 512
-			: st::maxStickerSize;
+			? st::maxStickerSize
+			: Yukigram::Settings::StickerSize->current();
 		if (_document->sticker()) {
 			box = QSize(max, max);
 			if (_document->isPremiumSticker()) {
