@@ -53,6 +53,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/ui_utility.h"
 #include "ui/effects/path_shift_gradient.h"
 #include "ui/effects/spoiler_mess.h"
+#include "yukigram/settings/round_size.h"
 #include "data/data_photo.h"
 #include "data/data_photo_media.h"
 #include "data/data_session.h"
@@ -368,7 +369,7 @@ QSize Gif::countThumbSize(int &inOutWidthMax) const {
 		} else if (_data->isVideoFile()) {
 			return st::maxMediaSize;
 		} else if (_data->isVideoMessage()) {
-			return st::maxVideoMessageSize;
+			return Yukigram::Settings::RoundSize->current();
 		}
 		return st::maxGifSize;
 	}();
