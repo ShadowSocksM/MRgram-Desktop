@@ -12,14 +12,6 @@ INTERFACE
     TMC_WORK_ITEM=FUNCORO
 )
 
-if (DESKTOP_APP_USE_PACKAGED)
-    find_package(TooManyCooks QUIET)
-    if (TooManyCooks_FOUND)
-        target_link_libraries(external_tmc INTERFACE TooManyCooks::TooManyCooks)
-        return()
-    endif()
-endif()
-
 target_include_directories(external_tmc SYSTEM
 INTERFACE
     ${third_party_loc}/TooManyCooks/include
