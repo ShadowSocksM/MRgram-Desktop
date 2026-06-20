@@ -389,6 +389,7 @@ QSize MediaPreviewWidget::currentDimensions() const {
 		} else {
 			box = QSize(2 * max, 2 * max);
 		}
+		box = QSize(std::min(box.width(), width() - 30), std::min(box.height(), height() - 100));
 	}
 	result = QSize(
 		std::max(style::ConvertScale(result.width()), 1),
