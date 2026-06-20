@@ -154,9 +154,9 @@ void MainWindow::updateWindowIcon() {
 }
 
 void MainWindow::updateUnityCounter() {
-#if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
-	qApp->setBadgeNumber(Core::App().unreadBadge());
-#else // Qt >= 6.6.0
+// #if QT_VERSION >= QT_VERSION_CHECK(6, 6, 0)
+// 	qApp->setBadgeNumber(Core::App().unreadBadge());
+// #else // Qt >= 6.6.0
 	using namespace gi::repository;
 
 	static const auto djbStringHash = [](const std::string &string) {
@@ -197,7 +197,7 @@ void MainWindow::updateUnityCounter() {
 						GLib::Variant::new_boolean(counterSlice))),
 			}),
 		}));
-#endif // Qt < 6.6.0
+// #endif // Qt < 6.6.0
 }
 
 void MainWindow::createGlobalMenu() {
