@@ -297,17 +297,17 @@ void GroupCallBar::paintTitleAndStatus(Painter &p) {
 		left,
 		titleTop,
 		width,
-		(!_content.scheduleDate
+		(!_content.title.isEmpty()
+			? ((titleWidth > available)
+				? font->elided(_content.title, available)
+				: _content.title)
+			: !_content.scheduleDate
 			? (_content.livestream
 				? tr::lng_group_call_title_channel
 				: tr::lng_group_call_title)(tr::now)
-			: _content.title.isEmpty()
-			? (_content.livestream
+			: (_content.livestream
 				? tr::lng_group_call_scheduled_title_channel
-				: tr::lng_group_call_scheduled_title)(tr::now)
-			: (titleWidth > available)
-			? font->elided(_content.title, available)
-			: _content.title));
+				: tr::lng_group_call_scheduled_title)(tr::now)));
 	p.setPen(st::historyStatusFg);
 	p.setFont(st::defaultMessageBar.text.font);
 	const auto when = [&] {
