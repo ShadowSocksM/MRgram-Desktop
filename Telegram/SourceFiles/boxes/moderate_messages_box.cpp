@@ -33,6 +33,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/history.h"
 #include "history/history_item.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "lottie/lottie_icon.h"
 #include "main/main_session.h"
 #include "ui/boxes/confirm_box.h"
@@ -46,6 +47,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/text/text_lottie_custom_emoji.h"
 #include "ui/text/text_utilities.h"
 #include "ui/vertical_list.h"
+#include "yukigram/settings/prevent_delete.h"
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/checkbox.h"
 #include "ui/widgets/expandable_peer_list.h"
@@ -1571,6 +1573,11 @@ void SafeSubmitOnEnter(not_null<Ui::GenericBox*> box) {
 }
 
 void DeleteChatBox(not_null<Ui::GenericBox*> box, not_null<PeerData*> peer) {
+	if (Yukigram::Settings::PreventDelete->current()) {
+		Ui::InformBox(box, { .text = ktr("box/prevent-delete/text") });
+		return;
+	}
+
 	const auto container = box->verticalLayout();
 
 	const auto userpicPeer = peer->userpicPaintingPeer();
@@ -1747,6 +1754,11 @@ void DeleteChatBox(not_null<Ui::GenericBox*> box, not_null<PeerData*> peer) {
 void DeleteSublistBox(
 		not_null<Ui::GenericBox*> box,
 		not_null<Data::SavedSublist*> sublist) {
+	if (Yukigram::Settings::PreventDelete->current()) {
+		Ui::InformBox(box, { .text = ktr("box/prevent-delete/text") });
+		return;
+	}
+
 	const auto container = box->verticalLayout();
 
 	const auto weak = base::make_weak(sublist.get());

@@ -65,6 +65,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/info_memento.h"
 #include "lang/lang_hardcoded.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "mtproto/sender.h"
 #include "main/main_app_config.h"
 #include "settings/settings_common.h"
@@ -84,6 +85,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/labels.h"
 #include "ui/wrap/padding_wrap.h"
 #include "ui/wrap/slide_wrap.h"
+#include "yukigram/settings/prevent_delete.h"
 #include "ui/wrap/vertical_layout.h"
 #include "ui/ui_utility.h"
 #include "window/window_session_controller.h"
@@ -3067,6 +3069,11 @@ void Controller::deleteWithConfirmation() {
 	const auto channel = _peer->asChannel();
 	Assert(channel != nullptr);
 
+	if (Yukigram::Settings::PreventDelete->current()) {
+		_navigation->parentController()->show(Ui::MakeInformBox({ .text = ktr("box/prevent-delete/text") }));
+		return;
+	}
+
 	const auto text = (_isGroup
 		? tr::lng_sure_delete_group
 		: tr::lng_sure_delete_channel)(tr::now);
@@ -3084,6 +3091,10 @@ void Controller::deleteWithConfirmation() {
 
 void Controller::deleteChannel() {
 	Expects(_peer->isChannel());
+
+	if (Yukigram::Settings::PreventDelete->current()) {
+		return;
+	}
 
 	const auto channel = _peer->asChannel();
 	const auto chat = channel->migrateFrom();

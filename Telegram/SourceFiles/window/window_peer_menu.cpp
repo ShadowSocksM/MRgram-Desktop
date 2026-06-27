@@ -50,6 +50,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "boxes/peers/edit_contact_box.h"
 #include "boxes/peers/prepare_short_info_box.h"
 #include "calls/calls_instance.h"
+#include "yukigram/settings/prevent_delete.h"
 #include "inline_bots/bot_attach_web_view.h" // InlineBots::PeerType.
 #include "ui/toast/toast.h"
 #include "ui/text/format_values.h"
@@ -4321,6 +4322,10 @@ Fn<void()> ClearHistoryHandler(
 		not_null<PeerData*> peer) {
 	return [=] {
 		if (!controller->showFrozenError()) {
+			if (Yukigram::Settings::PreventDelete->current()) {
+				controller->show(Ui::MakeInformBox({ .text = ktr("box/prevent-delete/text") }));
+				return;
+			}
 			controller->show(Box<DeleteMessagesBox>(peer, true));
 		}
 	};
