@@ -4774,7 +4774,7 @@ void ApiWrap::sendMessage(
 			|| (exactWebPage && !isLast);
 		const auto manualWebPage = exactWebPage
 			&& !ignoreWebPage
-			&& (message.webPage.manual || (isLast && !isFirst));
+			&& (message.webPage.manual || message.webPage.linkReplaced || (isLast && !isFirst));
 		MTPMessageMedia media = MTP_messageMediaEmpty();
 		if (ignoreWebPage) {
 			sendFlags |= MTPmessages_SendMessage::Flag::f_no_webpage;

@@ -13,6 +13,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_session.h"
 #include "data/data_web_page.h"
 #include "history/history.h"
+#include "yukigram/settings/preview_replace.h"
 #include "lang/lang_keys.h"
 #include "main/main_session.h"
 
@@ -371,13 +372,18 @@ void WebpageProcessor::checkPreview() {
 
 	auto page = (WebPageData*)nullptr;
 	auto chosen = QString();
-	for (const auto &link : _links) {
+	auto fixed = false;
+	for (const auto &input_link : _links) {
+		const auto link = YukigramReplaceLink(input_link);
+		const auto this_fixed = link != input_link;
 		const auto value = _resolver->lookup(link);
 		if (!value) {
 			chosen = link;
+			fixed = this_fixed;
 			break;
 		} else if (*value) {
 			chosen = link;
+			fixed = this_fixed;
 			page = *value;
 			break;
 		}
@@ -397,6 +403,7 @@ void WebpageProcessor::checkPreview() {
 		_data = nullptr;
 		_draft = {};
 	}
+	_draft.linkReplaced = fixed;
 	updateFromData();
 }
 

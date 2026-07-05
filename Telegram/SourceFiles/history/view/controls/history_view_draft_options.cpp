@@ -44,6 +44,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/toast/toast.h"
 #include "ui/vertical_list.h"
 #include "ui/ui_utility.h"
+#include "yukigram/settings/preview_replace.h"
 #include "window/themes/window_theme.h"
 #include "window/section_widget.h"
 #include "window/window_peer_menu.h"
@@ -726,8 +727,8 @@ void DraftOptionsBox(
 		Ui::SettingsSlider *tabs = nullptr;
 		PreviewWrap *wrap = nullptr;
 
-		Fn<void(const QString &link, WebPageData *page)> performSwitch;
-		Fn<void(const QString &link, bool force)> requestAndSwitch;
+		Fn<void(const QString &link, WebPageData *page, bool fixed)> performSwitch;
+		Fn<void(const QString &link, bool force, bool fixed)> requestAndSwitch;
 		rpl::lifetime resolveLifetime;
 
 		Fn<void()> rebuild;
@@ -1082,7 +1083,7 @@ void DraftOptionsBox(
 	};
 
 	const auto &resolver = args.resolver;
-	state->performSwitch = [=](const QString &link, WebPageData *page) {
+	state->performSwitch = [=](const QString &link, WebPageData *page, bool fixed) {
 		const auto now = base::unixtime::now();
 		if (!page || (page->pendingTill > 0 && page->pendingTill < now)) {
 			show->showToast(tr::lng_preview_cant(tr::now));
@@ -1091,26 +1092,27 @@ void DraftOptionsBox(
 			base::timer_once(
 				(delay + 1) * crl::time(1000)
 			) | rpl::on_next([=] {
-				state->requestAndSwitch(link, true);
+				state->requestAndSwitch(link, true, fixed);
 			}, state->resolveLifetime);
 
 			page->owner().webPageUpdates(
 			) | rpl::on_next([=](not_null<WebPageData*> updated) {
 				if (updated == page && !updated->pendingTill) {
 					state->resolveLifetime.destroy();
-					state->performSwitch(link, page);
+					state->performSwitch(link, page, fixed);
 				}
 			}, state->resolveLifetime);
 		} else {
 			state->preview = page;
 			state->webpage.id = page->id;
 			state->webpage.url = page->url;
+			state->webpage.linkReplaced = fixed;
 			state->webpage.manual = true;
 			state->link = link;
 			state->shown.force_assign(Section::Link);
 		}
 	};
-	state->requestAndSwitch = [=](const QString &link, bool force) {
+	state->requestAndSwitch = [=](const QString &link, bool force, bool fixed) {
 		resolver->request(link, force);
 
 		state->resolveLifetime = resolver->resolved(
@@ -1119,17 +1121,19 @@ void DraftOptionsBox(
 				state->resolveLifetime.destroy();
 				state->performSwitch(
 					link,
-					resolver->lookup(link).value_or(nullptr));
+					resolver->lookup(link).value_or(nullptr), fixed);
 			}
 		});
 	};
-	const auto switchTo = [=](const QString &link) {
+	const auto switchTo = [=](const QString &input_link) {
+		const auto link = YukigramReplaceLink(input_link);
+		const auto fixed = input_link != link;
 		if (link == state->link) {
 			return;
 		} else if (const auto value = resolver->lookup(link)) {
-			state->performSwitch(link, *value);
+			state->performSwitch(link, *value, fixed);
 		} else {
-			state->requestAndSwitch(link, false);
+			state->requestAndSwitch(link, false, fixed);
 		}
 	};
 
