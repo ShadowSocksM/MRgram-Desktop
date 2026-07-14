@@ -26,6 +26,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/profile/info_profile_values.h"
 #include "lang/lang_hardcoded.h"
 #include "lang/lang_keys.h"
+#include "yukigram/lang.h"
 #include "main/main_session.h"
 #include "main/session/session_show.h"
 #include "settings/settings_common.h"
@@ -223,6 +224,14 @@ void SetupCommunityContent(
 	if (!info) {
 		return;
 	}
+
+	const auto raw = community->id.value & PeerId::kChatTypeMask;
+	Ui::AddSkip(container);
+	Ui::AddSubsectionTitle(container, rktr("info/peer-id/community"));
+	Ui::AddDividerText(container, rpl::single(Ui::Text::Link(
+		Lang::FormatCountDecimal(raw),
+		"internal:~peer_id~:copy:" + QString::number(raw)
+	)));
 
 	Ui::AddSkip(container);
 	const auto toggle = Settings::AddButtonWithIcon(
