@@ -31,6 +31,7 @@ void PaintIslandOutline(
 		const QRectF &island,
 		float64 radius,
 		const style::color &bg) {
+	return;
 	const auto light = (bg->c.lightness() >= 128);
 	const auto width = light ? (0.6 * st::lineWidth) : double(st::lineWidth);
 	if (light) {
@@ -436,12 +437,12 @@ void TabsStrip::paintEvent(QPaintEvent *e) {
 	auto hq = PainterHighQualityEnabler(p);
 	p.setBrush(_st.bg);
 	p.setPen(Qt::NoPen);
-	p.drawRoundedRect(island, radius, radius);
+	p.drawRect(rect()); // also draw solid bg before island
 
 	validateContent(island);
 
 	auto clip = QPainterPath();
-	clip.addRoundedRect(QRectF(island), radius, radius);
+	clip.addRect(QRectF(island));
 	p.setClipPath(clip);
 	p.drawImage(island.topLeft(), _content);
 	p.setClipping(false);
@@ -471,10 +472,9 @@ void TabsStrip::validateContent(QRect island) {
 		const auto highlight = currentHighlightRect().translated(
 			origin.x(),
 			origin.y());
-		const auto highlightRadius = highlight.height() / 2.;
-		p.setBrush(_st.bgActive);
+		p.setBrush(_st.fgActive);
 		p.setPen(Qt::NoPen);
-		p.drawRoundedRect(highlight, highlightRadius, highlightRadius);
+		p.drawRoundedRect(QRect(highlight.left(), highlight.bottom(), highlight.width(), 2), 1, 1);
 	}
 	for (auto i = 0, c = int(_buttons.size()); i != c; ++i) {
 		auto &button = _buttons[i];

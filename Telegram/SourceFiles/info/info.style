@@ -705,10 +705,10 @@ infoMediaGridSizeStep: 16px;
 infoMediaTabsMinBodyWidth: infoMediaMinGridSize + infoMediaSkip + infoMediaSkip + infoMediaTabsRightSkip;
 
 infoProfileTabsStrip: ProfileTabsStrip {
-	height: 48px;
+	height: 42px;
 	margin: margins(8px, 6px, 8px, 6px);
 	skip: 0px;
-	tabPadding: margins(16px, 0px, 16px, 0px);
+	tabPadding: margins(10px, 0px, 10px, 0px);
 	activeSkip: 4px;
 	style: semiboldTextStyle;
 	fg: windowSubTextFg;
@@ -723,7 +723,7 @@ infoProfileTabsStrip: ProfileTabsStrip {
 infoProfileTabsShadow: BoxShadow {
 	blurRadius: 8px;
 	offset: point(0px, 2px);
-	opacity: 0.18;
+	opacity: 0.0;
 }
 
 infoCommonGroupsMargin: margins(0px, 2px, 0px, 2px);
