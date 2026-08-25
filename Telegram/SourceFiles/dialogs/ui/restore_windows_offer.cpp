@@ -97,7 +97,7 @@ Ui::Text::GeometryDescriptor RestoreWindowsOffer::questionGeometry() const {
 }
 
 void RestoreWindowsOffer::relayout() {
-	const auto &margins = st::dialogsTopBarSuggestionMargins;
+	const auto &margins = QRect(0, 0, 0, 0);
 	const auto &padding = st::restoreWindowsOfferPadding;
 	const auto textMargin = ButtonTextMargin();
 	const auto buttonSkip = st::restoreWindowsOfferButtonSkip;
@@ -190,20 +190,10 @@ void RestoreWindowsOffer::relayout() {
 
 void RestoreWindowsOffer::paintEvent(QPaintEvent *e) {
 	auto p = QPainter(this);
-	const auto pill = rect() - st::dialogsTopBarSuggestionMargins;
-	const auto radius = std::min({
-		PillRadius(),
-		pill.width() / 2,
-		pill.height() / 2,
-	});
-	_shadow.paint(p, pill, radius);
-	{
-		auto hq = PainterHighQualityEnabler(p);
-		p.setBrush(st::dialogsBg);
-		p.setPen(Qt::NoPen);
-		p.drawRoundedRect(pill, radius, radius);
-	}
-	PaintPillOutline(p, pill, radius);
+	const auto pill = rect();
+	p.setBrush(st::dialogsBg);
+	p.setPen(Qt::NoPen);
+	p.drawRect(pill);
 	p.setPen(st::windowFg);
 	_question.draw(p, {
 		.position = _questionPosition,
