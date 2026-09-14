@@ -21,6 +21,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/widgets/buttons.h"
 #include "styles/style_chat.h"
 #include "styles/style_chat_helpers.h"
+#include "yukigram/settings/hide_rich_paste_toast.h"
 
 #include <QtCore/QMimeData>
 
@@ -94,6 +95,7 @@ std::shared_ptr<QMimeData> CloneMimeData(not_null<const QMimeData*> data) {
 }
 
 void ShowRichPasteToast(RichPasteToastArgs &&args) {
+	if (Yukigram::Settings::HideRichPasteToast->current()) return;
 	const auto session = args.session;
 	const auto undo = (args.offer == RichPasteOffer::Plain);
 	const auto field = (args.offer == RichPasteOffer::Field);
