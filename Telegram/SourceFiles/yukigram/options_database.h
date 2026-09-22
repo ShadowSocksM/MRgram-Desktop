@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "yukigram/options.h"
 #include "base/options.h"
@@ -26,7 +26,7 @@ template<typename T> struct Option {
 		const auto value = inner.value();
 		if (const auto reason = d.checkValid(value); !reason.isEmpty()) {
 			LOG(("Yukigram::Options::Option: option %1: value %2: %3. Resetting to default %4"
-				).arg(key).arg(value).arg(reason).arg(d.defaultValue));
+				).arg(QString::fromUtf8(key.data(), int(key.size()))).arg(value).arg(reason).arg(d.defaultValue));
 			*v = d.defaultValue;
 		} else {
 			*v = value;
@@ -46,3 +46,5 @@ std::map<std::string_view, std::variant<Option<bool>, Option<int>, Option<QStrin
 std::map<std::string_view, std::vector<std::string_view>> &ByCategory();
 
 }
+
+

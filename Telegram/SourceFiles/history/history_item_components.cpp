@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -386,7 +386,7 @@ void HistoryMessageForwarded::create(
 		}
 	}
 	if (originalDate != TimeId(0)) {
-		phrase.append(" " + Ui::kQBullet + u" \u2068" + Ui::FormatDateTime(base::unixtime::parse(originalDate)));
+		phrase.append(u" "_q).append(Ui::kQBullet).append(u" \u2068"_q).append(Ui::FormatDateTime(base::unixtime::parse(originalDate)));
 	}
 	text.setMarkedText(st::fwdTextStyle, phrase, kMarkupTextOptions, context);
 
@@ -1620,3 +1620,5 @@ float64 HistoryDocumentVoice::seekingCurrent() const {
 void HistoryDocumentVoice::setSeekingCurrent(float64 seekingCurrent) {
 	_seekingCurrent = qRound(seekingCurrent * kFloatToIntMultiplier);
 }
+
+

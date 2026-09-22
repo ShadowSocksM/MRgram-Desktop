@@ -29,7 +29,8 @@ def run(project, arguments, buildType=''):
         elif vsArch == 'arm':
             cmake.append('-AARM64')
         else:
-            pass # Use Ninja with the active VS x64 environment
+            cmake.append('-AWin32') # default
+            cmake.append('-T v143')
     elif vsArch != '':
         print("[ERROR] x86/x64/arm switch is supported only with Visual Studio.")
         return 1

@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Kotatogram Desktop,
 the unofficial app based on Telegram Desktop.
 
@@ -54,14 +54,17 @@ void ParseLanguageData(const QString &langCode) {
 		return;
 	}
 
-	for (const auto [key, value] : document.object().asKeyValueRange()) {
+	const auto object = document.object();
+        for (auto it = object.constBegin(); it != object.constEnd(); ++it) {
+                const auto key = it.key();
+                const auto value = it.value();
 		if (key.front() == QChar('_')) {
 			continue;
 		}
 		if (!value.isString()) {
 			LOG(("Yukigram::Lang Info: wrong value for key %1 in file %2, string expected").arg(key, filename));
 		}
-		Values[key.toString()] = value.toString();
+		Values[key] = value.toString();
 	}
 }
 
@@ -166,3 +169,5 @@ rpl::producer<> Events() {
 
 } // namespace Lang
 } // namespace Yukigram
+
+

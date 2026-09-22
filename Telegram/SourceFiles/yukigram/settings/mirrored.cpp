@@ -1,4 +1,4 @@
-#include "yukigram/options.h"
+﻿#include "yukigram/options.h"
 #include "chat_helpers/tabbed_panel.h"
 #include "chat_helpers/stickers_list_widget.h"
 #include "dialogs/dialogs_widget.h"
@@ -59,10 +59,14 @@ rpl::variable<bool> *UseSmallMsgBubbleRadius = Yukigram::Options::make<bool>(Ui:
 	.mirrorExperimental = true,
 });
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 rpl::variable<bool> *QScroller = Yukigram::Options::make<bool>(Ui::kOptionKineticScroller, {
 	.keywords = { u"yukigram"_q, u"experimental"_q, u"kinetic"_q, u"qscroller"_q },
 	.category = "interface",
 	.mirrorExperimental = true,
 });
+#endif
 
 }
+
+

@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -227,7 +227,7 @@ void EditLinkBox(
 		if (const auto parsed = linkUrl.toLongLong(&ok); ok) {
 			uid = parsed;
 		} else if (const auto index = linkUrl.indexOf(prefix); index != -1) {
-			uid = linkUrl.slice(index + prefix.length()).toLongLong();
+			uid = linkUrl.mid(index + prefix.length()).toLongLong();
 		}
 		if (uid > 0) {
 			const auto user = show->session().data().userLoaded(uid);
@@ -1686,3 +1686,4 @@ bool PasteAsPlainTextRequested() {
 	return (modifiers & Qt::ControlModifier)
 		&& (modifiers & Qt::ShiftModifier);
 }
+

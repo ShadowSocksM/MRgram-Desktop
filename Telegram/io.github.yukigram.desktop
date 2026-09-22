@@ -1,0 +1,22 @@
+[Desktop Entry]
+Name=@YUKIGRAM_DISPLAY_NAME@
+Comment=Telegram Desktop, patched
+TryExec=@YUKIGRAM_APP_ID@
+Exec=@YUKIGRAM_APP_ID@ -- %U
+Icon=@YUKIGRAM_APP_ID@
+Terminal=false
+StartupWMClass=@YUKIGRAM_APP_ID@
+Type=Application
+Categories=Chat;Network;InstantMessaging;Qt;
+MimeType=x-scheme-handler/tg;x-scheme-handler/tonsite;
+Keywords=tg;chat;im;messaging;messenger;sms;tdesktop;telegram;
+Actions=quit;
+DBusActivatable=false
+SingleMainWindow=true
+X-GNOME-UsesNotifications=true
+X-GNOME-SingleWindow=true
+
+[Desktop Action quit]
+Exec=@YUKIGRAM_APP_ID@ -quit
+Name=Quit Yukigram
+Icon=application-exit

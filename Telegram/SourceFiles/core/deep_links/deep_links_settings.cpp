@@ -2104,7 +2104,7 @@ void RegisterSettingsHandlers(Router &router) {
 		.action = SettingsSection{ ::Settings::YukigramId() },
 	});
 	for (auto &[category, _] : Yukigram::Options::ByCategory()) {
-		const auto path = u"yukigram/%1"_q.arg(category);
+		const auto path = u"yukigram/%1"_q.arg(QString::fromUtf8(category.data(), int(category.size())));
 		router.add(u"settings"_q, {
 			.path = path,
 			.action = SettingsControl{
@@ -2114,7 +2114,7 @@ void RegisterSettingsHandlers(Router &router) {
 		});
 	}
 	for (auto &[key, _] : Yukigram::Options::Options()) {
-		const auto path = u"yukigram/%1"_q.arg(key);
+		const auto path = u"yukigram/%1"_q.arg(QString::fromUtf8(key.data(), int(key.size())));
 		router.add(u"settings"_q, {
 			.path = path,
 			.action = SettingsControl{

@@ -1,4 +1,4 @@
-// This file is part of Desktop App Toolkit,
+﻿// This file is part of Desktop App Toolkit,
 // a set of libraries for developing nice desktop applications.
 //
 // For license and copyright information please follow this link:
@@ -71,7 +71,6 @@ private:
 
 };
 
-auto EmojiFont = QFont("emoji");
 auto SizeNormal = -1;
 auto SizeLarge = -1;
 auto SpritesCount = -1;
@@ -789,6 +788,7 @@ bool Yukigram_UseSystemEmojiFont = false;
 void Draw(QPainter &p, EmojiPtr emoji, int size, int x, int y) {
 	if (Yukigram_UseSystemEmojiFont) {
 		const auto oldFont = p.font();
+                static auto EmojiFont = QFont("emoji");
 		EmojiFont.setPointSizeF(size * .75 / style::DevicePixelRatio());
 		p.setFont(EmojiFont);
 		p.drawText(QRect(x, y + 1, size + 1, size + 1), emoji->text());
@@ -931,3 +931,7 @@ void ReplaceSourceImages(std::shared_ptr<UniversalImages> images) {
 
 } // namespace Emoji
 } // namespace Ui
+
+
+
+

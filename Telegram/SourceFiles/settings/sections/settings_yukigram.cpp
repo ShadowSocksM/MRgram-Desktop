@@ -1,4 +1,4 @@
-#include "settings/sections/settings_yukigram.h"
+﻿#include "settings/sections/settings_yukigram.h"
 #include "yukigram/options_database.h"
 
 #include "settings/settings_common_session.h"
@@ -103,8 +103,8 @@ void InputInt(
 	controller->show(Box(
 		InputBox,
 		controller,
-		rktr(u"opt/%1/name"_q.arg(key)),
-		ktr(u"opt/%1/desc"_q.arg(key)),
+		rktr(u"opt/%1/name"_q.arg(qs_sv(key))),
+		ktr(u"opt/%1/desc"_q.arg(qs_sv(key))),
 		d.validHint(),
 		QString::number(v->current()),
 		QString::number(d.defaultValue),
@@ -134,8 +134,8 @@ void InputString(
 	controller->show(Box(
 		InputBox,
 		controller,
-		rktr(u"opt/%1/name"_q.arg(key)),
-		ktr(u"opt/%1/desc"_q.arg(key)),
+		rktr(u"opt/%1/name"_q.arg(qs_sv(key))),
+		ktr(u"opt/%1/desc"_q.arg(qs_sv(key))),
 		d.validHint(),
 		v->current(),
 		d.defaultValue,
@@ -160,8 +160,8 @@ Ui::SettingsButton *BuildButton(SectionBuilder &builder, Yukigram::Options::Opti
 	const auto icon = d.mirrorExperimental ? &st::menuIconExperimental : nullptr;
 
 	SectionBuilder::ButtonArgs args = {
-		.id = QString("yukigram/%1").arg(key),
-		.title = rktr(u"opt/%1/name"_q.arg(key)),
+		.id = QString("yukigram/%1").arg(qs_sv(key)),
+		.title = rktr(u"opt/%1/name"_q.arg(qs_sv(key))),
 		.st = icon ? nullptr : &st::settingsButtonNoIcon,
 		.icon = { icon },
 		.keywords = std::move(d.keywords),
@@ -181,7 +181,7 @@ Ui::SettingsButton *BuildButton(SectionBuilder &builder, Yukigram::Options::Opti
 }
 
 void BuildDescription(SectionBuilder &builder, std::string_view key) {
-	const auto descKey = u"opt/%1/desc"_q.arg(key);
+	const auto descKey = u"opt/%1/desc"_q.arg(qs_sv(key));
 	if (!ktr(descKey).isEmpty()) {
 		builder.addSkip(st::settingsCheckboxesSkip);
 		builder.addDividerText(rktr(descKey));
@@ -197,7 +197,7 @@ void BuildRow(SectionBuilder &builder, Yukigram::Options::Option<T> &o) {
 		return;
 	}
 
-	const auto link = u"tg://settings/yukigram/%1"_q.arg(o.key);
+	const auto link = u"tg://settings/yukigram/%1"_q.arg(qs_sv(o.key));
 	const auto menu = button->lifetime().template make_state<base::unique_qptr<Ui::PopupMenu>>();
 	button->events(
 	) | rpl::filter([](not_null<QEvent*> e) {
@@ -255,8 +255,8 @@ void BuildYukigramSectionContent(SectionBuilder &builder) {
 				builder.addSkip();
 			}
 			builder.addSubsectionTitle({
-				.id = u"yukigram/%1"_q.arg(category),
-				.title = rktr(u"optgroup/%1"_q.arg(category)),
+				.id = u"yukigram/%1"_q.arg(qs_sv(category)),
+				.title = rktr(u"optgroup/%1"_q.arg(qs_sv(category))),
 				.keywords = { u"yukigram"_q, qs_sv(category) },
 			});
 		}
@@ -320,3 +320,6 @@ Type YukigramId() {
 }
 
 } // namespace Settings
+
+
+
