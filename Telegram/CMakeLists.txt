@@ -1,4 +1,4 @@
-# This file is part of Telegram Desktop,
+﻿# This file is part of Telegram Desktop,
 # the official desktop application for the Telegram messaging service.
 #
 # For license and copyright information please follow this link:
@@ -1904,6 +1904,8 @@ PRIVATE
     settings/sections/settings_websites.h
     settings/sections/settings_yukigram.cpp
     settings/sections/settings_yukigram.h
+    settings/sections/settings_yukigram_plugins.cpp
+    settings/sections/settings_yukigram_plugins.h
     storage/details/storage_file_utilities.cpp
     storage/details/storage_file_utilities.h
     storage/details/storage_settings_scheme.cpp
@@ -2658,3 +2660,4 @@ if (LINUX AND DESKTOP_APP_USE_PACKAGED)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${YUKIGRAM_APP_ID}.service" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/dbus-1/services")
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${YUKIGRAM_APP_ID}.metainfo.xml" DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/metainfo")
 endif()
+

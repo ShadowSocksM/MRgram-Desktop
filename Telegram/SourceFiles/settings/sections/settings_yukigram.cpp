@@ -1,4 +1,5 @@
 ﻿#include "settings/sections/settings_yukigram.h"
+#include "settings/sections/settings_yukigram_plugins.h"
 #include "yukigram/options_database.h"
 
 #include "settings/settings_common_session.h"
@@ -242,6 +243,15 @@ const std::string_view Categories[] = {
 };
 
 void BuildYukigramSectionContent(SectionBuilder &builder) {
+        builder.addButton({
+                .id = u"yukigram/plugins"_q,
+                .title = rpl::single(u"Plugins"_q),
+                .icon = { &st::menuIconSettings },
+                .onClick = [showOther = builder.showOther()] {
+                        showOther(YukigramPluginsId());
+                },
+                .keywords = { u"plugins"_q, u"yukigram"_q },
+        });
 	bool isFirstNamedSection = true;
 	auto &byCategory = Yukigram::Options::ByCategory();
 	for (const auto &category : Categories) {
@@ -320,6 +330,10 @@ Type YukigramId() {
 }
 
 } // namespace Settings
+
+
+
+
 
 
 

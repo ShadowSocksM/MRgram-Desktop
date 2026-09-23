@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -21,6 +21,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/options.h"
 #include "yukigram/appid.h"
 #include "yukigram/options_runtime.h"
+#include "yukigram/plugins/plugin_manager.h"
 
 #include <QtCore/QLoggingCategory>
 #include <QtCore/QStandardPaths>
@@ -684,9 +685,12 @@ int Launcher::executeApplication() {
 	FilteredCommandLineArguments arguments(_argc, _argv);
 	Sandbox sandbox(arguments.count(), arguments.values());
 	Yukigram::Options::link(); // call after QApplication init
+        Yukigram::Plugins::Init();
 	Ui::MainQueueProcessor processor;
 	base::ConcurrentTimerEnvironment environment;
 	return sandbox.start();
 }
 
 } // namespace Core
+
+
