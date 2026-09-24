@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <QtCore/QDebug>
-#include <QtCore/QFile>
 #include <vector>
 
 namespace Yukigram::Plugins {
@@ -14,20 +13,9 @@ namespace {
 
 std::vector<RuntimePlugin> ActivePlugins;
 
-void WriteRuntimeTest(const QString &text) {
-        QFile file(cWorkingDir() + u"tdata/plugins/runtime_test.log"_q);
-        if (file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text)) {
-                file.write(text.toUtf8());
-                file.write("\n");
-        }
-}
-
 
 void ExecutePluginAction(const PluginInfo &plugin) {
-        if (plugin.action == u"write_test"_q) {
-                WriteRuntimeTest(u"ACTION: "_q + plugin.id + u" -> write_test"_q);
-                qDebug() << "[Yukigram Plugin Runtime] ACTION:" << plugin.id << plugin.action;
-        } else if (plugin.action == u"show_toast"_q) {
+        if (plugin.action == u"show_toast"_q) {
                 if (const auto window = Core::App().activeWindow()) {
                         if (const auto controller = window->sessionController()) {
                                 controller->showToast(u"Yukigram Plugin: "_q + plugin.name);
@@ -50,13 +38,11 @@ bool StartPluginRuntime(const QString &id) {
         if (i != ActivePlugins.end()) {
                 i->active = true;
                 qDebug() << "[Yukigram Plugin Runtime] START:" << id;
-                WriteRuntimeTest(u"START: "_q + id);
                 ExecutePluginAction(*plugin);
                 return true;
         }
 
         qDebug() << "[Yukigram Plugin Runtime] START:" << id;
-        WriteRuntimeTest(u"START: "_q + id);
         ExecutePluginAction(*plugin);
 
         ActivePlugins.push_back(RuntimePlugin{
@@ -74,7 +60,6 @@ void StopPluginRuntime(const QString &id) {
 
         if (i != ActivePlugins.end()) {
                 qDebug() << "[Yukigram Plugin Runtime] STOP:" << id;
-                WriteRuntimeTest(u"STOP: "_q + id);
                 i->active = false;
         }
 }
@@ -89,5 +74,9 @@ bool IsPluginRuntimeActive(const QString &id) {
 }
 
 } // namespace Yukigram::Plugins
+
+
+
+
 
 
