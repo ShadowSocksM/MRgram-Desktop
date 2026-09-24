@@ -1,5 +1,8 @@
 ﻿#include "yukigram/plugins/plugin_runtime.h"
 #include "yukigram/plugins/plugin_manager.h"
+#include "core/application.h"
+#include "window/window_controller.h"
+#include "window/window_session_controller.h"
 
 #include <algorithm>
 #include <QtCore/QDebug>
@@ -24,9 +27,15 @@ void ExecutePluginAction(const PluginInfo &plugin) {
         if (plugin.action == u"write_test"_q) {
                 WriteRuntimeTest(u"ACTION: "_q + plugin.id + u" -> write_test"_q);
                 qDebug() << "[Yukigram Plugin Runtime] ACTION:" << plugin.id << plugin.action;
-        }
+        } else if (plugin.action == u"show_toast"_q) {
+                if (const auto window = Core::App().activeWindow()) {
+                        if (const auto controller = window->sessionController()) {
+                                controller->showToast(u"Yukigram Plugin: "_q + plugin.name);
+                        }
+                }
 }
 
+}
 } // namespace
 
 bool StartPluginRuntime(const QString &id) {
