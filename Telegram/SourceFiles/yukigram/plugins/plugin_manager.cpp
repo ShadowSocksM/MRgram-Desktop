@@ -14,6 +14,32 @@ namespace Yukigram::Plugins {
 namespace {
 std::vector<PluginInfo> LoadedPluginsList;
 rpl::event_stream<> PluginsChangedStream;
+
+QString PluginStatesPath() {
+        return cWorkingDir() + u"tdata/plugins/plugin_states.json"_q;
+}
+
+QJsonObject LoadPluginStates() {
+        QFile file(PluginStatesPath());
+        if (!file.open(QIODevice::ReadOnly)) {
+                return {};
+        }
+
+        QJsonParseError error;
+        const auto document = QJsonDocument::fromJson(file.readAll(), &error);
+        if (error.error != QJsonParseError::NoError || !document.isObject()) {
+                return {};
+        }
+        return document.object();
+}
+
+void SavePluginStates(const QJsonObject &states) {
+        QFile file(PluginStatesPath());
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+                return;
+        }
+        file.write(QJsonDocument(states).toJson(QJsonDocument::Indented));
+}
 } // namespace
 
 void Init() {
@@ -76,12 +102,17 @@ bool LoadPlugin(const QString &path) {
                 LoadedPluginsList.end(),
                 [&](const PluginInfo &plugin) { return plugin.id == id; });
 
+        const auto states = LoadPluginStates();
+        const auto enabled = states.contains(id) ? states.value(id).toBool(true) : true;
+
         const auto info = PluginInfo{
                 id,
                 name,
                 version,
                 author,
                 description,
+                installedPath,
+                enabled,
         };
 
         if (existing != LoadedPluginsList.end()) {
@@ -89,7 +120,7 @@ bool LoadPlugin(const QString &path) {
         } else {
                 LoadedPluginsList.push_back(info);
         }
-        PluginsChangedStream.fire({});
+                PluginsChangedStream.fire({});
         qDebug() << "[Yukigram Plugins] Loaded:" << name << version << author;
         return true;
 }
@@ -101,7 +132,75 @@ rpl::producer<> PluginsChanged() {
 const std::vector<PluginInfo> &LoadedPlugins() {
         return LoadedPluginsList;
 }
+
+const PluginInfo *FindPlugin(const QString &id) {
+        const auto i = std::find_if(
+                LoadedPluginsList.begin(),
+                LoadedPluginsList.end(),
+                [&](const PluginInfo &plugin) { return plugin.id == id; });
+        return (i != LoadedPluginsList.end()) ? &*i : nullptr;
+}
+
+
+bool UninstallPlugin(const QString &id) {
+        const auto i = std::find_if(
+                LoadedPluginsList.begin(),
+                LoadedPluginsList.end(),
+                [&](const PluginInfo &plugin) { return plugin.id == id; });
+        if (i == LoadedPluginsList.end()) {
+                return false;
+        }
+
+        const auto path = i->path;
+        if (!path.isEmpty() && QFile::exists(path) && !QFile::remove(path)) {
+                return false;
+        }
+
+        auto states = LoadPluginStates();
+        states.remove(id);
+        SavePluginStates(states);
+
+        LoadedPluginsList.erase(i);
+        PluginsChangedStream.fire({});
+        return true;
+}
+bool SetPluginEnabled(const QString &id, bool enabled) {
+        const auto i = std::find_if(
+                LoadedPluginsList.begin(),
+                LoadedPluginsList.end(),
+                [&](const PluginInfo &plugin) { return plugin.id == id; });
+        if (i == LoadedPluginsList.end()) {
+                return false;
+        }
+        if (i->enabled == enabled) {
+                return true;
+        }
+        i->enabled = enabled;
+        auto states = LoadPluginStates();
+        states.insert(id, enabled);
+        SavePluginStates(states);
+        
+        return true;
+}
+
+
 } // namespace Yukigram::Plugins
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

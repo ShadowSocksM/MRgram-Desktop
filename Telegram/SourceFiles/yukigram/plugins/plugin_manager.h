@@ -12,14 +12,23 @@ struct PluginInfo {
         QString version;
         QString author;
         QString description;
+        QString path;
+        bool enabled = true;
 };
 
 void Init();
 bool LoadPlugin(const QString &path);
 const std::vector<PluginInfo> &LoadedPlugins();
+const PluginInfo *FindPlugin(const QString &id);
+bool SetPluginEnabled(const QString &id, bool enabled);
+bool UninstallPlugin(const QString &id);
 rpl::producer<> PluginsChanged();
 
 } // namespace Yukigram::Plugins
+
+
+
+
 
 
 
