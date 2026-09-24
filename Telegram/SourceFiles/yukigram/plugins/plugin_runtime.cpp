@@ -1,4 +1,5 @@
 ﻿#include "yukigram/plugins/plugin_runtime.h"
+#include "yukigram/plugins/plugin_manager.h"
 
 #include <algorithm>
 #include <QtCore/QDebug>
@@ -18,9 +19,20 @@ void WriteRuntimeTest(const QString &text) {
         }
 }
 
+
+void ExecutePluginAction(const PluginInfo &plugin) {
+        if (plugin.action == u"write_test"_q) {
+                WriteRuntimeTest(u"ACTION: "_q + plugin.id + u" -> write_test"_q);
+                qDebug() << "[Yukigram Plugin Runtime] ACTION:" << plugin.id << plugin.action;
+        }
+}
+
 } // namespace
 
 bool StartPluginRuntime(const QString &id) {
+        const auto plugin = FindPlugin(id);
+        if (!plugin) return false;
+
         const auto i = std::find_if(
                 ActivePlugins.begin(),
                 ActivePlugins.end(),
@@ -30,11 +42,13 @@ bool StartPluginRuntime(const QString &id) {
                 i->active = true;
                 qDebug() << "[Yukigram Plugin Runtime] START:" << id;
                 WriteRuntimeTest(u"START: "_q + id);
+                ExecutePluginAction(*plugin);
                 return true;
         }
 
         qDebug() << "[Yukigram Plugin Runtime] START:" << id;
         WriteRuntimeTest(u"START: "_q + id);
+        ExecutePluginAction(*plugin);
 
         ActivePlugins.push_back(RuntimePlugin{
                 id,

@@ -13,6 +13,7 @@ struct PluginInfo {
         QString author;
         QString description;
         QString path;
+        QString action;
         int apiVersion = 1;
         bool enabled = true;
 };

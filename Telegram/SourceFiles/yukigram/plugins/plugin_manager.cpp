@@ -79,6 +79,7 @@ bool LoadPlugin(const QString &path) {
         const auto version = object.value(u"version"_q).toString();
         const auto author = object.value(u"author"_q).toString();
         const auto description = object.value(u"description"_q).toString();
+        const auto action = object.value(u"action"_q).toString();
         const auto apiVersion = object.value(u"api_version"_q).toInt(kPluginApiVersion);
 
         if (apiVersion != kPluginApiVersion) {
@@ -120,6 +121,7 @@ bool LoadPlugin(const QString &path) {
                 author,
                 description,
                 installedPath,
+                action,
                 apiVersion,
                 enabled,
         };
