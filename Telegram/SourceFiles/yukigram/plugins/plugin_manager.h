@@ -19,7 +19,7 @@ struct PluginInfo {
 };
 
 void Init();
-bool LoadPlugin(const QString &path);
+bool LoadPlugin(const QString &path, bool startRuntime = true);
 const std::vector<PluginInfo> &LoadedPlugins();
 const PluginInfo *FindPlugin(const QString &id);
 bool SetPluginEnabled(const QString &id, bool enabled);
@@ -27,6 +27,7 @@ bool UninstallPlugin(const QString &id);
 rpl::producer<> PluginsChanged();
 
 } // namespace Yukigram::Plugins
+
 
 
 

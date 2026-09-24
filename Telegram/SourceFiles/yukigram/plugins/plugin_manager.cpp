@@ -53,7 +53,7 @@ void Init() {
         }, QDir::Files);
 
         for (const auto &file : files) {
-                LoadPlugin(directory.filePath(file));
+                LoadPlugin(directory.filePath(file), false);
         }
 
         qDebug() << "[Yukigram Plugins] Plugin Manager initialized:"
@@ -61,7 +61,7 @@ void Init() {
 }
 
 
-bool LoadPlugin(const QString &path) {
+bool LoadPlugin(const QString &path, bool startRuntime) {
         QFile file(path);
         if (!file.open(QIODevice::ReadOnly)) {
                 return false;
@@ -131,7 +131,7 @@ bool LoadPlugin(const QString &path) {
         } else {
                 LoadedPluginsList.push_back(info);
         }
-        if (enabled) {
+        if (enabled && startRuntime) {
                 StartPluginRuntime(id);
         }
 
@@ -207,6 +207,9 @@ bool SetPluginEnabled(const QString &id, bool enabled) {
 
 
 } // namespace Yukigram::Plugins
+
+
+
 
 
 
