@@ -13,6 +13,7 @@ struct PluginInfo {
         QString author;
         QString description;
         QString path;
+        int apiVersion = 1;
         bool enabled = true;
 };
 
@@ -25,6 +26,7 @@ bool UninstallPlugin(const QString &id);
 rpl::producer<> PluginsChanged();
 
 } // namespace Yukigram::Plugins
+
 
 
 

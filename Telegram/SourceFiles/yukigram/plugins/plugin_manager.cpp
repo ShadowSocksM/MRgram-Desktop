@@ -1,4 +1,6 @@
 ﻿#include "yukigram/plugins/plugin_manager.h"
+#include "yukigram/plugins/plugin_api.h"
+#include "yukigram/plugins/plugin_runtime.h"
 
 #include <algorithm>
 
@@ -77,6 +79,12 @@ bool LoadPlugin(const QString &path) {
         const auto version = object.value(u"version"_q).toString();
         const auto author = object.value(u"author"_q).toString();
         const auto description = object.value(u"description"_q).toString();
+        const auto apiVersion = object.value(u"api_version"_q).toInt(kPluginApiVersion);
+
+        if (apiVersion != kPluginApiVersion) {
+                qWarning() << "[Yukigram Plugins] Unsupported API version:" << apiVersion << "for" << name;
+                return false;
+        }
 
         if (id.isEmpty() || name.isEmpty() || version.isEmpty()) {
                 return false;
@@ -112,6 +120,7 @@ bool LoadPlugin(const QString &path) {
                 author,
                 description,
                 installedPath,
+                apiVersion,
                 enabled,
         };
 
@@ -120,6 +129,10 @@ bool LoadPlugin(const QString &path) {
         } else {
                 LoadedPluginsList.push_back(info);
         }
+        if (enabled) {
+                StartPluginRuntime(id);
+        }
+
                 PluginsChangedStream.fire({});
         qDebug() << "[Yukigram Plugins] Loaded:" << name << version << author;
         return true;
@@ -160,6 +173,7 @@ bool UninstallPlugin(const QString &id) {
         states.remove(id);
         SavePluginStates(states);
 
+        StopPluginRuntime(id);
         LoadedPluginsList.erase(i);
         PluginsChangedStream.fire({});
         return true;
@@ -179,12 +193,24 @@ bool SetPluginEnabled(const QString &id, bool enabled) {
         auto states = LoadPluginStates();
         states.insert(id, enabled);
         SavePluginStates(states);
+
+        if (enabled) {
+                StartPluginRuntime(id);
+        } else {
+                StopPluginRuntime(id);
+        }
         
         return true;
 }
 
 
 } // namespace Yukigram::Plugins
+
+
+
+
+
+
 
 
 
