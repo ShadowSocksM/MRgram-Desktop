@@ -25,7 +25,7 @@ StartWidget::StartWidget(
 	not_null<Data*> data)
 : Step(parent, account, data, true) {
 	setMouseTracking(true);
-	setTitleText(rpl::single(u"Yukigram"_q));
+	setTitleText(rpl::single(u"MRgram Desktop"_q));
 	setDescriptionText(ktr("intro/about"));
 	show();
 }

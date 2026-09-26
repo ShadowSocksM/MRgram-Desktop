@@ -1,4 +1,4 @@
-﻿# This file is part of Telegram Desktop,
+# This file is part of Telegram Desktop,
 # the official desktop application for the Telegram messaging service.
 #
 # For license and copyright information please follow this link:
@@ -2202,10 +2202,10 @@ file(GLOB_RECURSE yuki_src CONFIGURE_DEPENDS "${src_loc}/yukigram/*.cpp" "${src_
 target_sources(Telegram PRIVATE ${yuki_src})
 
 if (NOT DEVEL)
-    set(YUKIGRAM_APP_ID "io.github.yukigram")
+    set(YUKIGRAM_APP_ID "io.github.shadowsocksm.mrgram")
     set(YUKIGRAM_DEVEL "false")
 else()
-    set(YUKIGRAM_APP_ID "io.github.yukigram.devel")
+    set(YUKIGRAM_APP_ID "io.github.shadowsocksm.mrgram.devel")
     set(YUKIGRAM_DEVEL "true")
 endif()
 configure_file("${src_loc}/yukigram/appid.cpp.in" "${CMAKE_CURRENT_BINARY_DIR}/yukigram-appid.cpp" @ONLY)

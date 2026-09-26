@@ -18,7 +18,7 @@ void ExecutePluginAction(const PluginInfo &plugin) {
         if (plugin.action == u"show_toast"_q) {
                 if (const auto window = Core::App().activeWindow()) {
                         if (const auto controller = window->sessionController()) {
-                                controller->showToast(u"Yukigram Plugin: "_q + plugin.name);
+                                controller->showToast(u"MRgram Plugin: "_q + plugin.name);
                         }
                 }
 }
