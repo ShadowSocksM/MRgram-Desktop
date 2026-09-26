@@ -18,7 +18,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "api/api_unread_things.h"
 #include "base/random.h"
 #include "boxes/compose_ai_box.h"
-#include "yukigram/settings/disable_up_edit.h"
 #include "ui/boxes/confirm_box.h"
 #include "boxes/delete_messages_box.h"
 #include "boxes/send_credits_box.h"
@@ -37,7 +36,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "core/mime_type.h"
 #include "history/view/history_view_draw_to_reply.h"
 #include "history/view/controls/history_view_rich_draft_preview.h"
-#include "yukigram/settings/always_show_scheduled.h"
 #include "ui/emoji_config.h"
 #include "ui/chat/attach/attach_prepare.h"
 #include "ui/chat/choose_theme_controller.h"
@@ -65,7 +63,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "ui/controls/silent_toggle.h"
 #include "ui/screen_reader_mode.h"
 #include "ui/ui_utility.h"
-#include "yukigram/settings/hide_send_as.h"
 #include "inline_bots/inline_bot_result.h"
 #include "base/event_filter.h"
 #include "base/options.h"
@@ -104,7 +101,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_premium_limits.h" // Data::PremiumLimits.
 #include "data/stickers/data_stickers.h"
 #include "data/stickers/data_custom_emoji.h"
-#include "yukigram/settings/hide_bottom_bar.h"
 #include "history/history.h"
 #include "history/history_item.h"
 #include "history/history_item_helpers.h" // GetErrorForSending.
@@ -556,12 +552,6 @@ HistoryWidget::HistoryWidget(
 	}, lifetime());
 
 	_forwardPanel->itemsUpdated(
-	) | rpl::on_next([=] {
-		updateControlsVisibility();
-		updateControlsGeometry();
-	}, lifetime());
-
-	Yukigram::Settings::HideBottomBar->changes(
 	) | rpl::on_next([=] {
 		updateControlsVisibility();
 		updateControlsGeometry();
@@ -1874,8 +1864,8 @@ void HistoryWidget::scrollToAnimationCallback(
 	if (itemTop < 0) {
 		_scrollToAnimation.stop();
 	} else {
-		synteticScrollToY(qRound(_scrollToAnimation.value(relativeTo))
-			+ itemTop);
+		const auto value = _scrollToAnimation.value(relativeTo);
+		synteticScrollToY(int(base::SafeRound(value)) + itemTop);
 	}
 	if (!_scrollToAnimation.animating()) {
 		preloadHistoryByScroll();
@@ -3887,9 +3877,9 @@ void HistoryWidget::setupScheduledToggle() {
 }
 
 void HistoryWidget::refreshScheduledToggle() {
-	const auto has = Yukigram::Settings::AlwaysShowScheduled->current() || (_history
+	const auto has = _history
 		&& _canSendMessages
-		&& (session().scheduledMessages().count(_history) > 0));
+		&& (session().scheduledMessages().count(_history) > 0);
 	if (!_scheduled && has) {
 		_scheduled.create(this, st::historyScheduledToggle);
 		_scheduled->setAccessibleName(tr::lng_scheduled_messages(tr::now));
@@ -3986,14 +3976,6 @@ void HistoryWidget::refreshSuggestPostToggle() {
 }
 
 void HistoryWidget::setupSendAsToggle() {
-	Yukigram::Settings::HideSendAs->changes(
-	) | rpl::on_next([=] {
-		refreshSendAsToggle();
-		updateControlsVisibility();
-		updateControlsGeometry();
-		orderWidgets();
-	}, lifetime());
-
 	session().sendAsPeers().updated(
 	) | rpl::filter([=](Main::SendAsKey key) {
 		return (key.peer == _peer)
@@ -4010,7 +3992,7 @@ void HistoryWidget::refreshSendAsToggle() {
 	Expects(_peer != nullptr);
 
 	const auto key = Main::SendAsKey{ _peer, Main::SendAsType::Message };
-	if (Yukigram::Settings::HideSendAs->current() || _editMsgId || !session().sendAsPeers().shouldChoose(key)) {
+	if (_editMsgId || !session().sendAsPeers().shouldChoose(key)) {
 		_sendAs.destroy();
 		return;
 	} else if (_sendAs) {
@@ -6672,7 +6654,6 @@ bool HistoryWidget::isBotStart() const {
 	const auto user = _peer ? _peer->asUser() : nullptr;
 	if (!user
 		|| !user->isBot()
-		// || (user->isBlocked() && Yukigram::Settings::HideBottomBar->current())
 		|| !_canSendMessages) {
 		return false;
 	} else if (!user->botInfo->startToken.isEmpty()) {
@@ -6688,14 +6669,12 @@ bool HistoryWidget::isReportMessages() const {
 }
 
 bool HistoryWidget::isBlocked() const {
-	// if (Yukigram::Settings::HideBottomBar->current()) return false;
 	return _peer && _peer->isUser() && _peer->asUser()->isBlocked();
 }
 
 bool HistoryWidget::isJoinChannel() const {
-	if (Yukigram::Settings::HideBottomBar->current()) return false;
 	if (const auto channel = _peer ? _peer->asChannel() : nullptr) {
-		return !channel->amIn() && !channel->isMonoforum() && !_canSendMessages;
+		return !channel->amIn() && !channel->isMonoforum();
 	}
 	return false;
 }
@@ -6705,7 +6684,6 @@ bool HistoryWidget::isChoosingTheme() const {
 }
 
 bool HistoryWidget::isMuteUnmute() const {
-	if (Yukigram::Settings::HideBottomBar->current()) return false;
 	return _peer
 		&& ((_peer->isBroadcast() && !_peer->asChannel()->canPostMessages())
 			|| (_peer->isGigagroup() && !Data::CanSendAnything(_peer))
@@ -7073,7 +7051,7 @@ void HistoryWidget::toggleKeyboard(bool manual) {
 		_kbShown = true;
 
 		const auto maxheight = computeMaxFieldHeight();
-		const auto kbheight = qMin(
+		const auto kbheight = std::min(
 			_keyboard->height(),
 			maxheight - (maxheight / 2));
 		_field->setMaxHeight(maxheight - kbheight);
@@ -7420,7 +7398,7 @@ void HistoryWidget::moveFieldControls() {
 	auto maxKeyboardHeight = computeMaxFieldHeight() - fieldHeight();
 	_keyboard->resizeToWidth(width(), maxKeyboardHeight);
 	if (_kbShown) {
-		keyboardHeight = qMin(_keyboard->height(), maxKeyboardHeight);
+		keyboardHeight = std::min(_keyboard->height(), maxKeyboardHeight);
 		bottom -= keyboardHeight;
 		_kbScroll->setGeometryToLeft(0, bottom, width(), keyboardHeight);
 	}
@@ -8828,7 +8806,7 @@ void HistoryWidget::updateBotKeyboard(History *h, bool force) {
 			}
 			const auto maxheight = computeMaxFieldHeight();
 			const auto kbheight = hasMarkup
-				? qMin(_keyboard->height(), maxheight - (maxheight / 2))
+				? std::min(_keyboard->height(), maxheight - (maxheight / 2))
 				: 0;
 			_field->setMaxHeight(maxheight - kbheight);
 			_kbShown = hasMarkup;
@@ -9109,7 +9087,6 @@ void HistoryWidget::keyPressEvent(QKeyEvent *e) {
 		_scroll->keyPressEvent(e);
 	} else if (e->key() == Qt::Key_Up && !commonModifiers) {
 		if (!_field->empty()
-			|| Yukigram::Settings::DisableUpEdit->current()
 			|| !canWriteMessage()
 			|| _editMsgId
 			|| _replyTo) {
@@ -9981,7 +9958,7 @@ bool HistoryWidget::sendExistingDocument(
 	const auto ephemeralReply = session().ephemeralMessages()
 		.isEphemeralBotReply(messageToSend.action.replyTo.messageId);
 	const auto error = (_peer && !ephemeralReply)
-		? Data::RestrictionError(_peer, document->isGifv() ? ChatRestriction::SendGifs : ChatRestriction::SendStickers)
+		? Data::RestrictionError(_peer, ChatRestriction::SendStickers)
 		: Data::SendError();
 	if (error) {
 		Data::ShowSendErrorToast(controller(), _peer, error);
@@ -10801,7 +10778,7 @@ bool HistoryWidget::updateCanSendMessage() {
 	return true;
 }
 
-void HistoryWidget::forwardSelected(int steal) {
+void HistoryWidget::forwardSelected() {
 	if (!_list) {
 		return;
 	}
@@ -10813,7 +10790,7 @@ void HistoryWidget::forwardSelected(int steal) {
 			if (const auto strong = weak.get()) {
 				strong->clearSelected();
 			}
-		}, steal);
+		});
 }
 
 void HistoryWidget::confirmDeleteSelected() {
@@ -11373,6 +11350,10 @@ void HistoryWidget::paintEditHeader(
 		- timeSinceMessage;
 	if (editTimeLeft < 2) {
 		editTimeLeftText = u"0:00"_q;
+	} else if (editTimeLeft > kDisplayEditTimeWarningMs) {
+		updateIn = static_cast<int>(std::min(
+			editTimeLeft - kDisplayEditTimeWarningMs,
+			qint64(kFullDayInMs)));
 	} else {
 		updateIn = static_cast<int>(editTimeLeft % 1000);
 		if (!updateIn) {
@@ -11381,9 +11362,9 @@ void HistoryWidget::paintEditHeader(
 		++updateIn;
 
 		editTimeLeft = (editTimeLeft - 1) / 1000; // seconds
-		editTimeLeftText = (editTimeLeft >= 3600
-			? u"%1:%2:%3"_q.arg(editTimeLeft / 3600).arg(editTimeLeft % 3600 / 60, 2, 10, QChar('0')).arg(editTimeLeft % 60, 2, 10, QChar('0'))
-			: u"%1:%2"_q.arg(editTimeLeft / 60).arg(editTimeLeft % 60, 2, 10, QChar('0')));
+		editTimeLeftText = u"%1:%2"_q
+			.arg(editTimeLeft / 60)
+			.arg(editTimeLeft % 60, 2, 10, QChar('0'));
 	}
 
 	// Restart timer only if we are sure that we've painted the whole timer.

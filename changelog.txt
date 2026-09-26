@@ -1,7 +1,11 @@
 9999 wip (01.01.99)
 
-- Upstream updated to 7.2.8
+- Upstream updated to 7.2.9
 - Allow hiding "Pasted as plain text" toast
+
+7.2.9 (16.09.26)
+
+- Fix some tlottie incorrect renderings.
 
 7.2.8 (09.09.26)
 

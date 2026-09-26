@@ -803,7 +803,7 @@ void UnreadBar::paint(
 
 	int maxwidth = w;
 	if (!Yukigram::Settings::WideMessages->current() && mode == ElementChatMode::Wide) {
-		maxwidth = qMin(
+		maxwidth = std::min(
 			maxwidth,
 			st::msgMaxWidth
 				+ 2 * st::msgPhotoSkip
@@ -1091,7 +1091,7 @@ int ServicePreMessage::resizeToWidth(int newWidth, ElementChatMode mode) {
 			+ st::msgServicePadding.right();
 		auto minHeight = text.minHeight();
 
-		auto nwidth = qMax(contentWidth
+		auto nwidth = std::max(contentWidth
 			- st::msgServicePadding.left()
 			- st::msgServicePadding.right(), 0);
 		height = (contentWidth >= maxWidth)
@@ -1435,7 +1435,7 @@ void Element::paintHighlight(
 	}
 	const auto top = marginTop();
 	const auto bottom = marginBottom();
-	const auto fill = qMin(top, bottom);
+	const auto fill = std::min(top, bottom);
 	const auto skiptop = top - fill;
 	const auto fillheight = fill + geometryHeight + fill;
 

@@ -44,7 +44,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_forum.h"
 #include "data/data_forum_topic.h"
 #include "data/data_peer_values.h"
-#include "data/data_photo.h"
 #include "data/data_saved_sublist.h"
 #include "data/data_session.h"
 #include "data/data_user.h"
@@ -73,7 +72,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "inline_bots/bot_attach_web_view.h"
 #include "iv/iv_instance.h"
 #include "lang/lang_keys.h"
-#include "yukigram/lang.h"
 #include "main/main_session.h"
 #include "menu/menu_mute.h"
 #include "settings/settings_common.h"
@@ -106,7 +104,6 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "window/window_peer_menu.h"
 #include "window/window_separate_id.h"
 #include "window/window_session_controller.h"
-#include "yukigram/settings/inferred_peer_dc.h"
 #include "styles/style_boxes.h"
 #include "styles/style_channel_earn.h" // st::channelEarnCurrencyCommonMargins
 #include "styles/style_chat_helpers.h"
@@ -229,6 +226,69 @@ base::options::toggle ShowChannelJoinedBelowAbout({
 [[nodiscard]] object_ptr<Ui::RpWidget> CreateSkipWidget(
 		not_null<Ui::RpWidget*> parent) {
 	return Ui::CreateSkipWidget(parent, st::infoProfileSkip);
+}
+
+[[nodiscard]] rpl::producer<TextWithEntities> AboutWithAdvancedValue(
+		not_null<PeerData*> peer) {
+
+	return AboutValue(
+		peer
+	) | rpl::map([=](TextWithEntities &&value) {
+		if (ShowPeerIdBelowAbout.value()) {
+			using namespace Ui::Text;
+			if (!value.empty()) {
+				value.append("\n\n");
+			}
+			value.append(Italic(u"id: "_q));
+			const auto raw = peer->id.value & PeerId::kChatTypeMask;
+			value.append(Link(
+				Italic(Lang::FormatCountDecimal(raw)),
+				kPeerIdLinkIndex));
+		}
+		if (ShowChannelJoinedBelowAbout.value()) {
+			if (const auto channel = peer->asChannel()) {
+				if (!channel->amCreator() && channel->inviteDate) {
+					if (!value.empty()) {
+						if (ShowPeerIdBelowAbout.value()) {
+							value.append("\n");
+						} else {
+							value.append("\n\n");
+						}
+					}
+					using namespace Ui::Text;
+					value.append((channel->isMegagroup()
+						? tr::lng_you_joined_group
+						: tr::lng_action_you_joined)(
+							tr::now,
+							tr::italic));
+					value.append(Italic(": "));
+					const auto raw = channel->inviteDate;
+					value.append(Link(
+						Italic(langDateTimeFull(base::unixtime::parse(raw))),
+						"internal:~join_date~:show:" + QString::number(raw)));
+				}
+			}
+		}
+		return std::move(value);
+	});
+}
+
+void SetupAboutPeerIdDrag(
+		not_null<Ui::FlatLabel*> label,
+		not_null<PeerData*> peer) {
+	if (!ShowPeerIdBelowAbout.value()) {
+		return;
+	}
+	const auto id = QString::number(peer->id.value & PeerId::kChatTypeMask);
+	AboutValue(
+		peer
+	) | rpl::on_next([=] {
+		label->setLink(
+			kPeerIdLinkIndex,
+			std::make_shared<DraggableUrlClickHandler>(
+				u"internal:~peer_id~:copy:"_q + id,
+				id));
+	}, label->lifetime());
 }
 
 [[nodiscard]] bool AreNonTrivialHours(const Data::WorkingHours &hours) {
@@ -1398,16 +1458,18 @@ Section DetailsFiller::makeInfo() {
 		return true;
 	};
 
-	const auto addTranslateToMenu = [&,
+	const auto setupAboutContextMenu = [&,
 			peer = _peer.get(),
 			controller = _controller->parentController()](
 			not_null<Ui::FlatLabel*> label,
 			rpl::producer<TextWithEntities> &&text) {
 		struct State {
 			rpl::variable<TextWithEntities> labelText;
+			rpl::variable<TextWithEntities> aboutText;
 		};
 		const auto state = label->lifetime().make_state<State>();
 		state->labelText = std::move(text);
+		state->aboutText = AboutValue(peer);
 		label->setContextMenuHook([=](
 				Ui::FlatLabel::ContextMenuRequest request) {
 			if (request.link) {
@@ -1424,24 +1486,49 @@ Section DetailsFiller::makeInfo() {
 					return;
 				}
 			}
-			label->fillContextMenu(request);
-			if (Ui::SkipTranslate(state->labelText.current())) {
+			const auto selected = !request.selection.empty();
+			const auto full = state->labelText.current();
+			const auto about = state->aboutText.current();
+			const auto advanced = (about.text.size() < full.text.size());
+			if (selected || !advanced) {
+				label->fillContextMenu(request);
+			} else {
+				if (!about.empty()) {
+					request.menu->addAction(
+						tr::lng_context_copy_text(tr::now),
+						[=] {
+							TextUtilities::SetClipboardText(
+								TextForMimeData::WithExpandedLinks(about));
+						});
+				}
+				if (const auto link = request.link) {
+					const auto copy = link->copyToClipboardContextItemText();
+					if (!copy.isEmpty()) {
+						request.menu->addAction(
+							copy,
+							[text = link->copyToClipboardText()] {
+								TextUtilities::SetClipboardText({ text });
+							});
+					}
+				}
+			}
+			if (Ui::SkipTranslate(selected ? full : about)) {
 				return;
 			}
-			auto item = (request.selection.empty()
-				? tr::lng_context_translate
-				: tr::lng_context_translate_selected)(tr::now);
+			auto item = (selected
+				? tr::lng_context_translate_selected
+				: tr::lng_context_translate)(tr::now);
 			request.menu->addAction(std::move(item), [=] {
 				controller->window().show(Box(
 					Ui::TranslateBox,
 					peer,
 					MsgId(),
-					request.selection.empty()
-						? state->labelText.current()
-						: Ui::Text::Mid(
-							state->labelText.current(),
+					(selected
+						? Ui::Text::Mid(
+							full,
 							request.selection.from,
-							request.selection.to - request.selection.from),
+							request.selection.to - request.selection.from)
+						: about),
 					false));
 			});
 		});
@@ -1584,64 +1671,6 @@ Section DetailsFiller::makeInfo() {
 				}
 			});
 	};
-	const auto setupPeerId = [&] {
-		if (ShowPeerIdBelowAbout.value()) {
-			using namespace Ui::Text;
-			const auto raw = _peer->id.value & PeerId::kChatTypeMask;
-			addInfoOneLine(
-				rktr(
-					_peer->isChat() ? "info/peer-id/group" :
-					_peer->isMonoforum() ? "info/peer-id/monoforum" :
-					_peer->isForum() ? "info/peer-id/forum" :
-					_peer->isMegagroup() ? "info/peer-id/supergroup" :
-					_peer->isBroadcast() ? "info/peer-id/broadcast" :
-					_peer->isChannel() ? "info/peer-id/channel-like" :
-					_peer->isUser() ? "info/peer-id/user" :
-					"info/peer-id/unknown"
-				),
-				rpl::single(Link(
-					Lang::FormatCountDecimal(raw),
-					"internal:~peer_id~:copy:" + QString::number(raw)
-				)),
-				QString()
-			);
-		}
-	};
-	const auto setupPeerDc = [&] {
-		if (Yukigram::Settings::InferredPeerDc->current()) {
-			if (const auto id = _peer->userpicPhotoId()) {
-				if (const auto photo = _peer->owner().photo(id)) {
-					if (const auto dc = photo->mediaKey().first & 0xFFFF'FFFF) {
-						using namespace Ui::Text;
-						addInfoOneLine(
-							rktr("info/peer-dc/inferred"),
-							rpl::single(WithEntities(u"DC%1"_q.arg(dc))),
-							QString()
-						);
-					}
-				}
-			}
-		}
-	};
-	const auto setupJoinDate = [&] {
-		if (ShowChannelJoinedBelowAbout.value()) {
-			if (const auto channel = _peer->asChannel()) {
-				if (const auto raw = channel->inviteDate) {
-					using namespace Ui::Text;
-					addInfoOneLine(
-						(channel->isMegagroup()
-							? tr::lng_you_joined_group
-							: tr::lng_action_you_joined)(tr::now),
-						rpl::single(Link(
-							langDateTimeFull(base::unixtime::parse(raw)),
-							"internal:~join_date~:show:" + QString::number(raw)
-						)),
-						QString()
-					);
-				}
-			}
-		}
-	};
 	if (const auto user = _peer->asUser()) {
 		if (user->session().supportMode()) {
 			addInfoLineGeneric(
@@ -1678,8 +1707,9 @@ Section DetailsFiller::makeInfo() {
 			: tr::lng_info_bio_label();
 		const auto about = addInfoLine(
 			std::move(label),
-			AboutValue(user));
-		addTranslateToMenu(about.text, AboutValue(user));
+			AboutWithAdvancedValue(user));
+		setupAboutContextMenu(about.text, AboutWithAdvancedValue(user));
+		SetupAboutPeerIdDrag(about.text, user);
 
 		const auto usernameLine = addInfoOneLine(
 			UsernamesSubtext(_peer, tr::lng_info_username_label()),
@@ -1726,9 +1756,6 @@ Section DetailsFiller::makeInfo() {
 			Ui::DefaultShowFillPeerQrBoxCallback(show, user);
 			return false;
 		});
-
-		setupPeerId();
-		setupPeerDc();
 
 		if (!user->isBot()) {
 			tracker.track(result->add(
@@ -1844,14 +1871,11 @@ Section DetailsFiller::makeInfo() {
 
 		const auto about = addInfoLine(tr::lng_info_about_label(), _topic
 			? rpl::single(TextWithEntities())
-			: AboutValue(_peer));
+			: AboutWithAdvancedValue(_peer));
 		if (!_topic) {
-			addTranslateToMenu(about.text, AboutValue(_peer));
+			setupAboutContextMenu(about.text, AboutWithAdvancedValue(_peer));
+			SetupAboutPeerIdDrag(about.text, _peer);
 		}
-
-		setupPeerId();
-		setupPeerDc();
-		setupJoinDate();
 	}
 	raw->toggleOn(tracker.atLeastOneShownValue());
 	raw->finishAnimating();
@@ -2805,7 +2829,7 @@ void ActionsFiller::addAffiliateProgram(not_null<UserData*> user) {
 		bool requested = false;
 		Fn<void()> open;
 	};
-	const auto recipients = std::make_shared<StarRefRecipients>();
+	const auto recipients = inner->lifetime().make_state<StarRefRecipients>();
 	recipients->open = [=] {
 		if (!recipients->list.empty()) {
 			const auto program = user->botInfo->starRefProgram;
@@ -2815,10 +2839,11 @@ void ActionsFiller::addAffiliateProgram(not_null<UserData*> user) {
 				recipients->list));
 		} else if (!recipients->requested) {
 			recipients->requested = true;
-			const auto done = [=](std::vector<not_null<PeerData*>> list) {
+			const auto done = crl::guard(inner, [=](
+					std::vector<not_null<PeerData*>> list) {
 				recipients->list = std::move(list);
 				recipients->open();
-			};
+			});
 			Info::BotStarRef::ResolveRecipients(&user->session(), done);
 		}
 	};
