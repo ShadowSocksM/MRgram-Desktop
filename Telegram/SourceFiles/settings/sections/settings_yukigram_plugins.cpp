@@ -1,4 +1,6 @@
-﻿#include "settings/sections/settings_yukigram_plugins.h"
+#include "settings/sections/settings_yukigram_plugins.h"
+
+#include "base/invoke_queued.h"
 
 #include "settings/settings_builder.h"
 #include "settings/settings_common_session.h"
@@ -6,6 +8,7 @@
 #include "lang/lang_keys.h"
 #include "core/file_utilities.h"
 #include "yukigram/plugins/plugin_manager.h"
+#include "yukigram/plugins/plugin_runtime.h"
 #include "settings/sections/settings_yukigram.h"
 #include "ui/widgets/buttons.h"
 #include "ui/widgets/checkbox.h"
@@ -104,12 +107,25 @@ const auto kMeta = BuildHelper({
                         FileDialog::GetOpenPath(
                                 parent,
                                 u"Install Plugin"_q,
-                                u"Yukigram Plugin (*.yukiplugin);;"_q + FileDialog::AllFilesFilter(),
-                                [](FileDialog::OpenResult &&result) {
+                                u"MRgram Plugin (*.yukiplugin);;"_q + FileDialog::AllFilesFilter(),
+                                [parent](FileDialog::OpenResult &&result) {
                                         if (result.paths.isEmpty()) {
                                                 return;
                                         }
-                                        Yukigram::Plugins::LoadPlugin(result.paths.front());
+                                        const auto path = result.paths.front();
+                                        if (!Yukigram::Plugins::LoadPlugin(path, false)) {
+                                                return;
+                                        }
+                                        const auto fileName = QFileInfo(path).fileName();
+                                        for (const auto &plugin : Yukigram::Plugins::LoadedPlugins()) {
+                                                if (QFileInfo(plugin.path).fileName() == fileName) {
+                                                        const auto pluginId = plugin.id;
+                                                        InvokeQueued(parent, [=] {
+                                                                Yukigram::Plugins::StartPluginRuntime(pluginId);
+                                                        });
+                                                        break;
+                                                }
+                                        }
                                 });
                 },
                 .keywords = { u"plugin"_q, u"install"_q },

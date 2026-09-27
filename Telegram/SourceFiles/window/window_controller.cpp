@@ -6,6 +6,8 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "window/window_controller.h"
+#include "base/invoke_queued.h"
+#include "yukigram/plugins/plugin_runtime.h"
 
 #include "api/api_updates.h"
 #include "core/application.h"
@@ -181,7 +183,9 @@ void Controller::showAccount(
 		if (session) {
 			setupSideBar();
 			setupMain(singlePeerShowAtMsgId, std::move(oldContentCache));
-
+			InvokeQueued(widget(), [] {
+			        Yukigram::Plugins::StartEnabledPlugins();
+			});
 			session->updates().isIdleValue(
 			) | rpl::filter([=](bool idle) {
 				return !idle;

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <QtCore/QString>
 
@@ -9,6 +9,7 @@ struct RuntimePlugin {
         bool active = false;
 };
 
+void StartEnabledPlugins();
 bool StartPluginRuntime(const QString &id);
 void StopPluginRuntime(const QString &id);
 bool IsPluginRuntimeActive(const QString &id);

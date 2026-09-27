@@ -1,4 +1,4 @@
-﻿#include "yukigram/plugins/plugin_runtime.h"
+#include "yukigram/plugins/plugin_runtime.h"
 #include "yukigram/plugins/plugin_manager.h"
 #include "core/application.h"
 #include "window/window_controller.h"
@@ -25,6 +25,19 @@ void ExecutePluginAction(const PluginInfo &plugin) {
 
 }
 } // namespace
+
+void StartEnabledPlugins() {
+	static bool started = false;
+	if (started) {
+		return;
+	}
+	started = true;
+	for (const auto &plugin : LoadedPlugins()) {
+		if (plugin.enabled) {
+			StartPluginRuntime(plugin.id);
+		}
+	}
+}
 
 bool StartPluginRuntime(const QString &id) {
         const auto plugin = FindPlugin(id);
