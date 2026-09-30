@@ -305,6 +305,8 @@ public:
 	QPixmap grabForShowAnimation(const Window::SectionSlideParams &params);
 
 	void forwardSelected(int steal = 0);
+        void forwardProSelected();
+        void directForwardSelected();
 	void confirmDeleteSelected();
 	void clearSelected();
 

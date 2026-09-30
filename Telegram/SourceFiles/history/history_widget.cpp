@@ -10778,7 +10778,7 @@ bool HistoryWidget::updateCanSendMessage() {
 	return true;
 }
 
-void HistoryWidget::forwardSelected() {
+void HistoryWidget::forwardSelected(int steal) {
 	if (!_list) {
 		return;
 	}
@@ -10790,7 +10790,25 @@ void HistoryWidget::forwardSelected() {
 			if (const auto strong = weak.get()) {
 				strong->clearSelected();
 			}
-		});
+		}, steal);
+}
+
+void HistoryWidget::forwardProSelected() {
+        if (!_list) {
+                return;
+        }
+        Window::ShowForwardProMessagesBox(
+                controller(),
+                _list->getSelectedForwardItems());
+}
+
+void HistoryWidget::directForwardSelected() {
+        if (!_list) {
+                return;
+        }
+        Window::ShowDirectForwardMessagesBox(
+                controller(),
+                _list->getSelectedForwardItems());
 }
 
 void HistoryWidget::confirmDeleteSelected() {

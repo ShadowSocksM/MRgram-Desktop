@@ -6,6 +6,7 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "history/history_inner_widget.h"
+#include "yukigram/plugins/plugin_runtime.h"
 
 #include "api/api_polls.h"
 #include "chat_helpers/stickers_emoji_pack.h"
@@ -3436,6 +3437,14 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 				_menu->addAction(tr::lng_context_forward_selected(tr::now), [=] {
 					_widget->forwardSelected();
 				}, &st::menuIconForward);
+
+				_menu->addAction(u"Forward Pro"_q, [=] {
+					_widget->forwardProSelected();
+				}, &st::menuIconForward);
+
+				_menu->addAction(u"Direct Forward"_q, [=] {
+					_widget->directForwardSelected();
+				}, &st::menuIconForward);
 			}
 			if (selectedState.count > 0 && selectedState.canDeleteCount == selectedState.count) {
 				_menu->addAction(tr::lng_context_delete_selected(tr::now), [=] {
@@ -3461,13 +3470,26 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 		} else if (item) {
 			const auto itemId = item->fullId();
 			const auto blockSender = item->history()->peer->isRepliesChat();
-			if (isUponSelected != -2) {
-				if (item->allowsForward() && !IsAnchoredEphemeral(item)) {
-					_menu->addAction(tr::lng_context_forward_msg(tr::now), [=] {
-						forwardItem(itemId);
-					}, &st::menuIconForward);
-				}
-				if (HistoryView::CanAddOfferToMessage(item)) {
+if (isUponSelected != -2) {
+if (item->allowsForward() && !IsAnchoredEphemeral(item)) {
+_menu->addAction(tr::lng_context_forward_msg(tr::now), [=] {
+forwardItem(itemId);
+}, &st::menuIconForward);
+
+_menu->addAction(u"Forward Pro"_q, [=] {
+Window::ShowForwardProMessagesBox(
+_controller,
+MessageIdsList{ 1, itemId });
+}, &st::menuIconForward);
+
+_menu->addAction(u"Direct Forward"_q, [=] {
+Window::ShowDirectForwardMessagesBox(
+_controller,
+MessageIdsList{ 1, itemId });
+}, &st::menuIconForward);
+// MRGRAM_FORWARD_PRO_END
+}
+                                if (HistoryView::CanAddOfferToMessage(item)) {
 					_menu->addAction(tr::lng_context_add_offer(tr::now), [=] {
 						Api::AddOfferToMessage(_controller->uiShow(), itemId);
 					}, &st::menuIconTagSell);
@@ -3750,6 +3772,14 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 				_menu->addAction(tr::lng_context_forward_selected(tr::now), [=] {
 					_widget->forwardSelected();
 				}, &st::menuIconForward);
+
+				_menu->addAction(u"Forward Pro"_q, [=] {
+					_widget->forwardProSelected();
+				}, &st::menuIconForward);
+
+				_menu->addAction(u"Direct Forward"_q, [=] {
+					_widget->directForwardSelected();
+				}, &st::menuIconForward);
 			}
 			if (selectedState.count > 0 && selectedState.count == selectedState.canDeleteCount) {
 				_menu->addAction(tr::lng_context_delete_selected(tr::now), [=] {
@@ -3781,6 +3811,17 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 					_menu->addAction(tr::lng_context_forward_msg(tr::now), [=] {
 						forwardAsGroup(itemId);
 					}, &st::menuIconForward);
+_menu->addAction(u"Forward Pro"_q, [=] {
+forwardProAsGroup(itemId);
+}, &st::menuIconForward);
+
+_menu->addAction(u"Direct Forward"_q, [=] {
+if (const auto item = _controller->session().data().message(itemId)) {
+Window::ShowDirectForwardMessagesBox(
+_controller,
+_controller->session().data().itemOrItsGroup(item));
+}
+}, &st::menuIconForward);
 				}
 				if (HistoryView::CanAddOfferToMessage(item)) {
 					_menu->addAction(tr::lng_context_add_offer(tr::now), [=] {
@@ -4228,7 +4269,7 @@ void HistoryInner::keyPressEvent(QKeyEvent *e) {
 				// was mutated since the last navigation, possibly by
 				// an unread bar appearing right at the cached index).
 				// Repair the cached index in-place without emitting a
-				// focus change — the framework still thinks the
+				// focus change â€” the framework still thinks the
 				// focused child is _accessibilityFocusedItem and we
 				// are only catching up our bookkeeping. If the item
 				// is not in the loaded slice anymore the index is
@@ -6246,6 +6287,14 @@ void HistoryInner::forwardAsGroup(FullMsgId itemId) {
 	}
 }
 
+
+void HistoryInner::forwardProAsGroup(FullMsgId itemId) {
+if (const auto item = session().data().message(itemId)) {
+Window::ShowForwardProMessagesBox(
+_controller,
+session().data().itemOrItsGroup(item));
+}
+}
 void HistoryInner::deleteItem(FullMsgId itemId) {
 	if (const auto item = session().data().message(itemId)) {
 		deleteItem(item);
@@ -7040,3 +7089,10 @@ void HistoryInner::accessibilityChildActivate(quintptr identity) {
 		applyAccessibilityFocus(index, true);
 	});
 }
+
+
+
+
+
+
+
