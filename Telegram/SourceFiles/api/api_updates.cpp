@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -60,6 +60,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/history_streamed_drafts.h"
 #include "history/history_unread_things.h"
 #include "core/application.h"
+#include "yukigram/settings/ghost_mode.h"
 #include "storage/storage_account.h"
 #include "storage/storage_facade.h"
 #include "storage/storage_user_photos.h"
@@ -996,6 +997,12 @@ void Updates::updateOnline(crl::time lastNonIdleTime, bool gotOtherOffline) {
 
 	const auto &config = _session->serverConfig();
 	bool isOnline = Core::App().hasActiveWindow(&session());
+
+// MRGRAM_GHOST_ONLINE_BEGIN
+if (Yukigram::Settings::GhostMode->current()) {
+        isOnline = false;
+}
+// MRGRAM_GHOST_ONLINE_END
 	int updateIn = config.onlineUpdatePeriod;
 	Assert(updateIn >= 0);
 	if (isOnline) {
@@ -2896,3 +2903,4 @@ bool IsWithdrawalNotification(const MTPDupdateServiceNotification &data) {
 }
 
 } // namespace Api
+

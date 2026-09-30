@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -32,6 +32,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "history/history_item_helpers.h"
 #include "history/view/history_view_element.h"
 #include "core/application.h"
+#include "yukigram/settings/ghost_mode.h"
 #include "apiwrap.h"
 
 namespace Data {
@@ -686,6 +687,12 @@ void Histories::reportPendingDeliveries() {
 }
 
 void Histories::sendReadRequests() {
+// MRGRAM_GHOST_READ_BEGIN
+if (Yukigram::Settings::GhostMode->current()) {
+_readRequestsTimer.cancel();
+return;
+}
+// MRGRAM_GHOST_READ_END
 	DEBUG_LOG(("Reading: send requests with count %1.").arg(_states.size()));
 	if (_states.empty()) {
 		return;
@@ -1308,3 +1315,5 @@ Histories::State *Histories::lookup(not_null<History*> history) {
 }
 
 } // namespace Data
+
+

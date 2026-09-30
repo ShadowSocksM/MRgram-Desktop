@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -6,6 +6,8 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "history/view/history_view_context_menu.h"
+
+#include "yukigram/plugins/plugin_runtime.h"
 
 #include "api/api_attached_stickers.h"
 #include "api/api_editing.h"
@@ -562,31 +564,31 @@ MessageIdsList ExtractIdsList(const SelectedItems &items) {
 }
 
 bool AddForwardSelectedAction(
-		not_null<Ui::PopupMenu*> menu,
-		const ContextMenuRequest &request,
-		not_null<ListWidget*> list) {
-	if (!request.overSelection || request.selectedItems.empty()) {
-		return false;
-	}
-	if (!ranges::all_of(request.selectedItems, &SelectedItem::canForward)) {
-		return false;
-	}
+                not_null<Ui::PopupMenu*> menu,
+                const ContextMenuRequest &request,
+                not_null<ListWidget*> list) {
+        if (!request.overSelection || request.selectedItems.empty()) {
+                return false;
+        }
+        if (!ranges::all_of(request.selectedItems, &SelectedItem::canForward)) {
+                return false;
+        }
 
-	menu->addAction(tr::lng_context_forward_selected(tr::now), [=] {
-		const auto weak = base::make_weak(list);
-		const auto callback = [=] {
-			if (const auto strong = weak.get()) {
-				strong->cancelSelection();
-			}
-		};
-		Window::ShowForwardMessagesBox(
-			request.navigation,
-			ExtractIdsList(request.selectedItems),
-			callback);
-	}, &st::menuIconForward);
-	return true;
+        menu->addAction(tr::lng_context_forward_selected(tr::now), [=] {
+                const auto weak = base::make_weak(list);
+                const auto callback = [=] {
+                        if (const auto strong = weak.get()) {
+                                strong->cancelSelection();
+                        }
+                };
+                Window::ShowForwardMessagesBox(
+                        request.navigation,
+                        ExtractIdsList(request.selectedItems),
+                        callback);
+        }, &st::menuIconForward);
+
+        return true;
 }
-
 bool AddForwardMessageAction(
 		not_null<Ui::PopupMenu*> menu,
 		const ContextMenuRequest &request,
@@ -617,8 +619,32 @@ bool AddForwardMessageAction(
 					? owner->itemOrItsGroup(item)
 					: MessageIdsList{ 1, itemId }));
 		}
-	}, &st::menuIconForward);
-	return true;
+        }, &st::menuIconForward);
+
+
+        // MRGRAM_BUILTIN_FORWARD_BEGIN
+        menu->addAction(u"Forward Pro"_q, [=] {
+                if (const auto item = owner->message(itemId)) {
+                        Window::ShowForwardProMessagesBox(
+                                request.navigation,
+                                (asGroup
+                                        ? owner->itemOrItsGroup(item)
+                                        : MessageIdsList{ 1, itemId }));
+                }
+        }, &st::menuIconForward);
+
+        menu->addAction(u"Direct Forward"_q, [=] {
+                if (const auto item = owner->message(itemId)) {
+                        Window::ShowDirectForwardMessagesBox(
+                                request.navigation,
+                                (asGroup
+                                        ? owner->itemOrItsGroup(item)
+                                        : MessageIdsList{ 1, itemId }));
+                }
+        }, &st::menuIconForward);
+        // MRGRAM_BUILTIN_FORWARD_END
+
+        return true;
 }
 
 void AddForwardAction(
@@ -3101,3 +3127,5 @@ bool ItemHasTtl(HistoryItem *item) {
 }
 
 } // namespace HistoryView
+
+

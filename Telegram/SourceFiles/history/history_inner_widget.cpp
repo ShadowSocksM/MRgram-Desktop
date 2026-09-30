@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -4269,7 +4269,7 @@ void HistoryInner::keyPressEvent(QKeyEvent *e) {
 				// was mutated since the last navigation, possibly by
 				// an unread bar appearing right at the cached index).
 				// Repair the cached index in-place without emitting a
-				// focus change â€” the framework still thinks the
+				// focus change Ã¢â‚¬â€ the framework still thinks the
 				// focused child is _accessibilityFocusedItem and we
 				// are only catching up our bookkeeping. If the item
 				// is not in the loaded slice anymore the index is
@@ -7089,6 +7089,8 @@ void HistoryInner::accessibilityChildActivate(quintptr identity) {
 		applyAccessibilityFocus(index, true);
 	});
 }
+
+
 
 
 

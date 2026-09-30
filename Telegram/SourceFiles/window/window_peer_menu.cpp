@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -77,6 +77,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "api/api_polls.h"
 #include "api/api_todo_lists.h"
 #include "api/api_updates.h"
+#include "api/api_sending.h"
 #include "mtproto/mtproto_config.h"
 #include "history/history.h"
 #include "history/history_item_helpers.h" // GetErrorForSending.
@@ -3883,6 +3884,291 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 		steal);
 }
 
+base::weak_qptr<Ui::BoxContent> ShowForwardProMessagesBox(
+		not_null<Window::SessionNavigation*> navigation,
+		MessageIdsList &&items,
+		Fn<void()> &&successCallback) {
+	const auto session = &navigation->session();
+	const auto resolved = session->data().idsToItems(items);
+	if (resolved.empty()) {
+		return { nullptr };
+	}
+
+	const auto sourceItem = resolved.front();
+	const auto original = sourceItem->originalText();
+	const auto initial = TextWithTags{
+		original.text,
+		TextUtilities::ConvertEntitiesToTextTags(original.entities)
+	};
+
+	const auto ids = std::make_shared<MessageIdsList>(std::move(items));
+	const auto callback = std::make_shared<Fn<void()>>(
+		std::move(successCallback));
+
+	return navigation->parentController()->show(
+		Box<Ui::GenericBox>([=](not_null<Ui::GenericBox*> box) {
+			box->setTitle(rpl::single(u"Forward Pro"_q));
+
+			const auto field = box->addRow(
+				object_ptr<Ui::InputField>(
+					box,
+					st::defaultComposeFiles.caption,
+					Ui::InputField::Mode::MultiLine,
+					rpl::single(u"Edit text / caption"_q)));
+
+			field->setTextWithTags(
+				initial,
+				Ui::InputField::HistoryAction::Clear);
+
+			field->setMaxHeight(
+				st::defaultComposeFiles.caption.heightMax);
+
+			box->setFocusCallback([=] {
+				field->setFocusFast();
+			});
+
+			box->addButton(
+				rpl::single(u"Next"_q),
+				[=] {
+					const auto edited =
+						field->getTextWithAppliedMarkdown();
+
+					const auto currentItems =
+						session->data().idsToItems(*ids);
+					if (currentItems.empty()) {
+						box->closeBox();
+						return;
+					}
+
+					const auto item = currentItems.front();
+					const auto history = item->history();
+					const auto show =
+						navigation->parentController()->uiShow();
+
+					const auto shareBox =
+						std::make_shared<
+							base::weak_qptr<Ui::BoxContent>>();
+					const auto sending =
+						std::make_shared<bool>(false);
+
+					auto countMessagesCallback =
+						[=](const TextWithTags &) {
+							return 1;
+						};
+
+					auto submitCallback =
+						[=](
+							std::vector<
+								not_null<Data::Thread*>> &&result,
+							Fn<bool()> checkPaid,
+							TextWithTags &&,
+							Api::SendOptions options,
+							Data::ForwardOptions) {
+							if (*sending || result.empty()) {
+								return;
+							}
+							if (!checkPaid()) {
+								return;
+							}
+
+							*sending = true;
+
+							for (const auto &thread : result) {
+								auto message = Api::MessageToSend(
+									Api::SendAction(thread, options));
+								message.textWithTags = edited;
+								message.action.clearDraft = false;
+
+								if (const auto media = item->media()) {
+									if (const auto photo =
+											media->photo()) {
+										Api::SendExistingPhoto(
+											std::move(message),
+											photo);
+									} else if (const auto document =
+											media->document()) {
+										Api::SendExistingDocument(
+											std::move(message),
+											document);
+									} else {
+										session->api().sendMessage(
+											std::move(message));
+									}
+								} else {
+									session->api().sendMessage(
+										std::move(message));
+								}
+							}
+
+							if (const auto weak = *shareBox) {
+								weak->closeBox();
+							}
+
+							if (*callback) {
+								(*callback)();
+							}
+
+							show->showToast(
+								tr::lng_share_done(tr::now));
+						};
+
+					auto filterCallback =
+						[](not_null<Data::Thread*> thread) {
+							if (const auto user =
+									thread->peer()->asUser()) {
+								if (user
+										->canSendIgnoreMoneyRestrictions()) {
+									return true;
+								}
+							}
+							return Data::CanSend(
+								thread,
+								ChatRestriction::SendOther);
+						};
+
+					box->closeBox();
+
+					*shareBox = show->show(
+						Box<ShareBox>(ShareBox::Descriptor{
+							.session = session,
+							.countMessagesCallback =
+								std::move(countMessagesCallback),
+							.submitCallback =
+								std::move(submitCallback),
+							.filterCallback =
+								std::move(filterCallback),
+							.moneyRestrictionError =
+								ShareMessageMoneyRestrictionError(),
+						}),
+						Ui::LayerOption::KeepOther,
+						anim::type::normal);
+				});
+
+			box->addButton(
+				tr::lng_cancel(),
+				[=] {
+					box->closeBox();
+				});
+		}));
+}
+
+base::weak_qptr<Ui::BoxContent> ShowDirectForwardMessagesBox(
+                not_null<Window::SessionNavigation*> navigation,
+                MessageIdsList &&items,
+                Fn<void()> &&successCallback) {
+        const auto session = &navigation->session();
+        const auto resolved = session->data().idsToItems(items);
+
+        if (resolved.empty()) {
+                return { nullptr };
+        }
+
+        const auto item = resolved.front();
+        const auto original = item->originalText();
+        const auto text = TextWithTags{
+                original.text,
+                TextUtilities::ConvertEntitiesToTextTags(original.entities)
+        };
+
+        const auto callback = std::make_shared<Fn<void()>>(
+                std::move(successCallback));
+
+        const auto show = navigation->parentController()->uiShow();
+        const auto shareBox =
+                std::make_shared<base::weak_qptr<Ui::BoxContent>>();
+        const auto sending = std::make_shared<bool>(false);
+
+        auto countMessagesCallback =
+                [=](const TextWithTags &) {
+                        return 1;
+                };
+
+        auto submitCallback =
+                [=](
+                        std::vector<not_null<Data::Thread*>> &&result,
+                        Fn<bool()> checkPaid,
+                        TextWithTags &&,
+                        Api::SendOptions options,
+                        Data::ForwardOptions) {
+                        if (*sending || result.empty()) {
+                                return;
+                        }
+
+                        if (!checkPaid()) {
+                                return;
+                        }
+
+                        *sending = true;
+
+                        for (const auto &thread : result) {
+                                auto message = Api::MessageToSend(
+                                        Api::SendAction(thread, options));
+
+                                message.textWithTags = text;
+                                message.action.clearDraft = false;
+
+                                if (const auto media = item->media()) {
+                                        if (const auto photo = media->photo()) {
+                                                Api::SendExistingPhoto(
+                                                        std::move(message),
+                                                        photo);
+                                        } else if (const auto document =
+                                                        media->document()) {
+                                                Api::SendExistingDocument(
+                                                        std::move(message),
+                                                        document);
+                                        } else {
+                                                session->api().sendMessage(
+                                                        std::move(message));
+                                        }
+                                } else {
+                                        session->api().sendMessage(
+                                                std::move(message));
+                                }
+                        }
+
+                        if (const auto weak = *shareBox) {
+                                weak->closeBox();
+                        }
+
+                        if (*callback) {
+                                (*callback)();
+                        }
+
+                        show->showToast(
+                                tr::lng_share_done(tr::now));
+                };
+
+        auto filterCallback =
+                [](not_null<Data::Thread*> thread) {
+                        if (const auto user = thread->peer()->asUser()) {
+                                if (user->canSendIgnoreMoneyRestrictions()) {
+                                        return true;
+                                }
+                        }
+
+                        return Data::CanSend(
+                                thread,
+                                ChatRestriction::SendOther);
+                };
+
+        *shareBox = show->show(
+                Box<ShareBox>(ShareBox::Descriptor{
+                        .session = session,
+                        .countMessagesCallback =
+                                std::move(countMessagesCallback),
+                        .submitCallback =
+                                std::move(submitCallback),
+                        .filterCallback =
+                                std::move(filterCallback),
+                        .moneyRestrictionError =
+                                ShareMessageMoneyRestrictionError(),
+                }),
+                Ui::LayerOption::KeepOther,
+                anim::type::normal);
+
+        return *shareBox;
+}
 base::weak_qptr<Ui::BoxContent> ShowShareGameBox(
 		not_null<Window::SessionNavigation*> navigation,
 		not_null<UserData*> bot,
@@ -4788,3 +5074,8 @@ void ForwardToSelf(
 }
 
 } // namespace Window
+
+
+
+
+

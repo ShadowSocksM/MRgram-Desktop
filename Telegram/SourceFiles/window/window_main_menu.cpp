@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -34,6 +34,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "info/stories/info_stories_widget.h"
 #include "lang/lang_keys.h"
 #include "yukigram/lang.h"
+#include "yukigram/settings/ghost_mode.h"
 #include "main/main_account.h"
 #include "main/main_domain.h"
 #include "main/main_session.h"
@@ -757,7 +758,50 @@ void MainMenu::setupMenu() {
 		controller->showSettings();
 	});
 
-	_nightThemeToggle = addAction(
+	// MRGRAM_GHOST_MENU_BEGIN
+const auto ghostToggle = addAction(
+        rpl::single(u"Ghost Mode"_q),
+        { &st::menuIconStealth }
+)->toggleOn(Yukigram::Settings::GhostMode->value());
+
+ghostToggle->toggledChanges(
+) | rpl::on_next([=](bool enabled) {
+        *Yukigram::Settings::GhostMode = enabled;
+}, ghostToggle->lifetime());
+// MRGRAM_GHOST_MENU_END
+// MRGRAM_PROXY_TOGGLE_BEGIN
+const auto proxyToggle = addAction(
+rpl::single(u"Proxy"_q),
+{ &st::connectingProxyOff }
+)->toggleOn(rpl::single(
+Core::App().settings().proxy().isEnabled()
+));
+
+proxyToggle->toggledChanges(
+) | rpl::on_next([=](bool enabled) {
+auto &proxy = Core::App().settings().proxy();
+
+if (enabled) {
+if (proxy.list().empty()) {
+proxyToggle->toggleOn(rpl::single(false));
+return;
+}
+if (!proxy.selected()) {
+proxy.setSelected(proxy.list().back());
+}
+Core::App().setCurrentProxy(
+proxy.selected(),
+MTP::ProxyData::Settings::Enabled);
+} else {
+Core::App().setCurrentProxy(
+proxy.selected(),
+MTP::ProxyData::Settings::System);
+}
+
+Core::App().saveSettingsDelayed();
+}, proxyToggle->lifetime());
+// MRGRAM_PROXY_TOGGLE_END
+_nightThemeToggle = addAction(
 		tr::lng_menu_night_mode(),
 		{ &st::menuIconNightMode }
 	)->toggleOn(_nightThemeSwitches.events_starting_with(
@@ -1060,3 +1104,7 @@ void MainMenu::setupSwipe() {
 }
 
 } // namespace Window
+
+
+
+

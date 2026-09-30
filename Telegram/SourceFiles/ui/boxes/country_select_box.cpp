@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -784,3 +784,4 @@ void CountrySelectBox::Inner::accessibilityChildActivate(quintptr identity) {
 }
 
 } // namespace Ui
+

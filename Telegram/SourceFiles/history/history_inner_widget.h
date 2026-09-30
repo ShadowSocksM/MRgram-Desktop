@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -528,6 +528,7 @@ private:
 	void extendAccessibilitySelection(int oldIndex, int newIndex);
 	void forwardItem(FullMsgId itemId);
 	void forwardAsGroup(FullMsgId itemId);
+	void forwardProAsGroup(FullMsgId itemId);
 	void deleteItem(not_null<HistoryItem*> item);
 	void deleteItem(FullMsgId itemId);
 	void deleteAsGroup(FullMsgId itemId);
@@ -724,3 +725,4 @@ private:
 };
 
 [[nodiscard]] bool CanSendReply(not_null<const HistoryItem*> item);
+

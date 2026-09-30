@@ -13,5 +13,6 @@ void StartEnabledPlugins();
 bool StartPluginRuntime(const QString &id);
 void StopPluginRuntime(const QString &id);
 bool IsPluginRuntimeActive(const QString &id);
+bool IsPluginActionActive(const QString &action);
 
 } // namespace Yukigram::Plugins

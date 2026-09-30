@@ -1,4 +1,4 @@
-/*
+﻿/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -6,6 +6,7 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "api/api_send_progress.h"
+#include "yukigram/settings/ghost_mode.h"
 
 #include "main/main_session.h"
 #include "history/history.h"
@@ -109,6 +110,11 @@ bool SendProgressManager::updated(const Key &key, bool doing) {
 }
 
 void SendProgressManager::send(const Key &key, int progress) {
+// MRGRAM_GHOST_TYPING_BEGIN
+if (Yukigram::Settings::GhostMode->current()) {
+return;
+}
+// MRGRAM_GHOST_TYPING_END
 	if (skipRequest(key)) {
 		return;
 	}
@@ -180,3 +186,5 @@ void SendProgressManager::done(mtpRequestId requestId) {
 }
 
 } // namespace Api
+
+
