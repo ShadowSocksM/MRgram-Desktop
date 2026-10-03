@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -108,6 +108,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/stickers/data_custom_emoji.h"
 #include "data/data_changes.h"
 #include "data/data_session.h"
+#include "data/data_document.h"
+#include "data/data_photo.h"
 #include "data/data_folder.h"
 #include "data/data_poll.h"
 #include "data/data_channel.h"
@@ -3885,174 +3887,6 @@ base::weak_qptr<Ui::BoxContent> ShowForwardMessagesBox(
 }
 
 base::weak_qptr<Ui::BoxContent> ShowForwardProMessagesBox(
-		not_null<Window::SessionNavigation*> navigation,
-		MessageIdsList &&items,
-		Fn<void()> &&successCallback) {
-	const auto session = &navigation->session();
-	const auto resolved = session->data().idsToItems(items);
-	if (resolved.empty()) {
-		return { nullptr };
-	}
-
-	const auto sourceItem = resolved.front();
-	const auto original = sourceItem->originalText();
-	const auto initial = TextWithTags{
-		original.text,
-		TextUtilities::ConvertEntitiesToTextTags(original.entities)
-	};
-
-	const auto ids = std::make_shared<MessageIdsList>(std::move(items));
-	const auto callback = std::make_shared<Fn<void()>>(
-		std::move(successCallback));
-
-	return navigation->parentController()->show(
-		Box<Ui::GenericBox>([=](not_null<Ui::GenericBox*> box) {
-			box->setTitle(rpl::single(u"Forward Pro"_q));
-
-			const auto field = box->addRow(
-				object_ptr<Ui::InputField>(
-					box,
-					st::defaultComposeFiles.caption,
-					Ui::InputField::Mode::MultiLine,
-					rpl::single(u"Edit text / caption"_q)));
-
-			field->setTextWithTags(
-				initial,
-				Ui::InputField::HistoryAction::Clear);
-
-			field->setMaxHeight(
-				st::defaultComposeFiles.caption.heightMax);
-
-			box->setFocusCallback([=] {
-				field->setFocusFast();
-			});
-
-			box->addButton(
-				rpl::single(u"Next"_q),
-				[=] {
-					const auto edited =
-						field->getTextWithAppliedMarkdown();
-
-					const auto currentItems =
-						session->data().idsToItems(*ids);
-					if (currentItems.empty()) {
-						box->closeBox();
-						return;
-					}
-
-					const auto item = currentItems.front();
-					const auto history = item->history();
-					const auto show =
-						navigation->parentController()->uiShow();
-
-					const auto shareBox =
-						std::make_shared<
-							base::weak_qptr<Ui::BoxContent>>();
-					const auto sending =
-						std::make_shared<bool>(false);
-
-					auto countMessagesCallback =
-						[=](const TextWithTags &) {
-							return 1;
-						};
-
-					auto submitCallback =
-						[=](
-							std::vector<
-								not_null<Data::Thread*>> &&result,
-							Fn<bool()> checkPaid,
-							TextWithTags &&,
-							Api::SendOptions options,
-							Data::ForwardOptions) {
-							if (*sending || result.empty()) {
-								return;
-							}
-							if (!checkPaid()) {
-								return;
-							}
-
-							*sending = true;
-
-							for (const auto &thread : result) {
-								auto message = Api::MessageToSend(
-									Api::SendAction(thread, options));
-								message.textWithTags = edited;
-								message.action.clearDraft = false;
-
-								if (const auto media = item->media()) {
-									if (const auto photo =
-											media->photo()) {
-										Api::SendExistingPhoto(
-											std::move(message),
-											photo);
-									} else if (const auto document =
-											media->document()) {
-										Api::SendExistingDocument(
-											std::move(message),
-											document);
-									} else {
-										session->api().sendMessage(
-											std::move(message));
-									}
-								} else {
-									session->api().sendMessage(
-										std::move(message));
-								}
-							}
-
-							if (const auto weak = *shareBox) {
-								weak->closeBox();
-							}
-
-							if (*callback) {
-								(*callback)();
-							}
-
-							show->showToast(
-								tr::lng_share_done(tr::now));
-						};
-
-					auto filterCallback =
-						[](not_null<Data::Thread*> thread) {
-							if (const auto user =
-									thread->peer()->asUser()) {
-								if (user
-										->canSendIgnoreMoneyRestrictions()) {
-									return true;
-								}
-							}
-							return Data::CanSend(
-								thread,
-								ChatRestriction::SendOther);
-						};
-
-					box->closeBox();
-
-					*shareBox = show->show(
-						Box<ShareBox>(ShareBox::Descriptor{
-							.session = session,
-							.countMessagesCallback =
-								std::move(countMessagesCallback),
-							.submitCallback =
-								std::move(submitCallback),
-							.filterCallback =
-								std::move(filterCallback),
-							.moneyRestrictionError =
-								ShareMessageMoneyRestrictionError(),
-						}),
-						Ui::LayerOption::KeepOther,
-						anim::type::normal);
-				});
-
-			box->addButton(
-				tr::lng_cancel(),
-				[=] {
-					box->closeBox();
-				});
-		}));
-}
-
-base::weak_qptr<Ui::BoxContent> ShowDirectForwardMessagesBox(
                 not_null<Window::SessionNavigation*> navigation,
                 MessageIdsList &&items,
                 Fn<void()> &&successCallback) {
@@ -4063,112 +3897,461 @@ base::weak_qptr<Ui::BoxContent> ShowDirectForwardMessagesBox(
                 return { nullptr };
         }
 
-        const auto item = resolved.front();
-        const auto original = item->originalText();
-        const auto text = TextWithTags{
-                original.text,
-                TextUtilities::ConvertEntitiesToTextTags(original.entities)
-        };
+        // MRGram v1.0.2 Forward Pro:
+        // Expand albums using Telegram native itemOrItsGroup().
+        auto expandedIds = MessageIdsList();
+        for (const auto &item : resolved) {
+                const auto groupIds = session->data().itemOrItsGroup(item);
+                for (const auto &id : groupIds) {
+                        if (ranges::find(expandedIds, id) == expandedIds.end()) {
+                                expandedIds.push_back(id);
+                        }
+                }
+        }
+
+        const auto expanded = session->data().idsToItems(expandedIds);
+        if (expanded.empty()) {
+                return { nullptr };
+        }
+
+        // Caption/text editor starts with the first non-empty text/caption.
+        auto initial = TextWithTags();
+        for (const auto &item : expanded) {
+                const auto original = item->originalText();
+                if (!original.text.isEmpty()) {
+                        initial = TextWithTags{
+                                original.text,
+                                TextUtilities::ConvertEntitiesToTextTags(
+                                        original.entities)
+                        };
+                        break;
+                }
+        }
 
         const auto callback = std::make_shared<Fn<void()>>(
                 std::move(successCallback));
 
-        const auto show = navigation->parentController()->uiShow();
-        const auto shareBox =
-                std::make_shared<base::weak_qptr<Ui::BoxContent>>();
-        const auto sending = std::make_shared<bool>(false);
+        return navigation->parentController()->show(
+                Box<Ui::GenericBox>([=](not_null<Ui::GenericBox*> box) {
+                        box->setTitle(rpl::single(u"Forward Pro"_q));
 
-        auto countMessagesCallback =
-                [=](const TextWithTags &) {
-                        return 1;
-                };
+                        const auto field = box->addRow(
+                                object_ptr<Ui::InputField>(
+                                        box,
+                                        st::defaultComposeFiles.caption,
+                                        Ui::InputField::Mode::MultiLine,
+                                        rpl::single(u"Edit text / caption"_q)));
 
-        auto submitCallback =
-                [=](
-                        std::vector<not_null<Data::Thread*>> &&result,
-                        Fn<bool()> checkPaid,
-                        TextWithTags &&,
-                        Api::SendOptions options,
-                        Data::ForwardOptions) {
-                        if (*sending || result.empty()) {
-                                return;
-                        }
+                        field->setTextWithTags(
+                                initial,
+                                Ui::InputField::HistoryAction::Clear);
 
-                        if (!checkPaid()) {
-                                return;
-                        }
+                        field->setMaxHeight(
+                                st::defaultComposeFiles.caption.heightMax);
 
-                        *sending = true;
+                        box->setFocusCallback([=] {
+                                field->setFocusFast();
+                        });
 
-                        for (const auto &thread : result) {
-                                auto message = Api::MessageToSend(
-                                        Api::SendAction(thread, options));
+                        box->addButton(
+                                rpl::single(u"Next"_q),
+                                [=] {
+                                        const auto edited =
+                                                field->getTextWithAppliedMarkdown();
 
-                                message.textWithTags = text;
-                                message.action.clearDraft = false;
+                                        const auto show =
+                                                navigation->parentController()->uiShow();
+
+                                        const auto shareBox =
+                                                std::make_shared<
+                                                        base::weak_qptr<Ui::BoxContent>>();
+                                        const auto sending =
+                                                std::make_shared<bool>(false);
+
+                                        auto countMessagesCallback =
+                                                [=](const TextWithTags &) {
+                                                        return int(expanded.size());
+                                                };
+
+                                        auto submitCallback =
+                                                [=](
+                                                        std::vector<
+                                                                not_null<Data::Thread*>> &&result,
+                                                        Fn<bool()> checkPaid,
+                                                        TextWithTags &&,
+                                                        Api::SendOptions options,
+                                                        Data::ForwardOptions) {
+                                                        if (*sending || result.empty()) {
+                                                                return;
+                                                        }
+
+                                                        if (!checkPaid()) {
+                                                                return;
+                                                        }
+
+                                                        *sending = true;
+
+                                                        for (const auto &thread : result) {
+                                                                auto firstCaptionApplied = false;
+                                                                auto album = std::vector<Api::ForwardProMediaItem>();
+                                                                auto fallback = std::vector<not_null<HistoryItem*>>();
+
+                                                                album.reserve(expanded.size());
+                                                                fallback.reserve(expanded.size());
+
+                                                                for (const auto &item : expanded) {
+                                                                        const auto original =
+                                                                                item->originalText();
+
+                                                                        auto text = TextWithTags{
+                                                                                original.text,
+                                                                                TextUtilities::
+                                                                                        ConvertEntitiesToTextTags(
+                                                                                                original.entities)
+                                                                        };
+
+                                                                        // Apply Forward Pro edited caption/text once.
+                                                                        if (!firstCaptionApplied
+                                                                                && !original.text.isEmpty()) {
+                                                                                text = edited;
+                                                                                firstCaptionApplied = true;
+                                                                        }
+
+                                                                        if (!firstCaptionApplied
+                                                                                && !item->media()) {
+                                                                                text = edited;
+                                                                                firstCaptionApplied = true;
+                                                                        }
+
+                                                                        if (const auto media = item->media()) {
+                                                                                const auto caption =
+                                                                                        TextWithEntities{
+                                                                                                text.text,
+                                                                                                TextUtilities::
+                                                                                                        ConvertTextTagsToEntities(
+                                                                                                                text.tags)
+                                                                                        };
+
+                                                                                if (const auto photo =
+                                                                                                media->photo()) {
+                                                                                        album.push_back({
+                                                                                                .photo = photo,
+                                                                                                .document = nullptr,
+                                                                                                .origin = Data::FileOrigin(),
+                                                                                                .caption = caption,
+                                                                                        });
+                                                                                        continue;
+                                                                                }
+
+                                                                                if (const auto document =
+                                                                                                media->document()) {
+                                                                                        album.push_back({
+                                                                                                .photo = nullptr,
+                                                                                                .document = document,
+                                                                                                .origin =
+                                                                                                        document->stickerOrGifOrigin(),
+                                                                                                .caption = caption,
+                                                                                        });
+                                                                                        continue;
+                                                                                }
+                                                                        }
+
+                                                                        fallback.push_back(item);
+                                                                }
+
+                                                                if (!album.empty()) {
+                                                                        auto action =
+                                                                                Api::SendAction(
+                                                                                        thread,
+                                                                                        options);
+                                                                        action.clearDraft = false;
+
+                                                                        Api::SendForwardProAlbum(
+                                                                                std::move(action),
+                                                                                std::move(album));
+                                                                }
+
+                                                                // Non photo/document messages keep the old
+                                                                // normal-send behaviour.
+                                                                for (const auto &item : fallback) {
+                                                                        const auto original =
+                                                                                item->originalText();
+
+                                                                        auto text = TextWithTags{
+                                                                                original.text,
+                                                                                TextUtilities::
+                                                                                        ConvertEntitiesToTextTags(
+                                                                                                original.entities)
+                                                                        };
+
+                                                                        if (!firstCaptionApplied) {
+                                                                                text = edited;
+                                                                                firstCaptionApplied = true;
+                                                                        }
+
+                                                                        auto message =
+                                                                                Api::MessageToSend(
+                                                                                        Api::SendAction(
+                                                                                                thread,
+                                                                                                options));
+
+                                                                        message.textWithTags = text;
+                                                                        message.action.clearDraft = false;
+
+                                                                        session->api().sendMessage(
+                                                                                std::move(message));
+                                                                }
+                                                        }
+
+                                                        if (const auto weak = *shareBox) {
+                                                                weak->closeBox();
+                                                        }
+
+                                                        if (*callback) {
+                                                                (*callback)();
+                                                        }
+
+                                                        show->showToast(
+                                                                tr::lng_share_done(tr::now));
+                                                };
+
+                                        auto filterCallback =
+                                                [](not_null<Data::Thread*> thread) {
+                                                        if (const auto user =
+                                                                        thread->peer()->asUser()) {
+                                                                if (user
+                                                                                ->canSendIgnoreMoneyRestrictions()) {
+                                                                        return true;
+                                                                }
+                                                        }
+
+                                                        return Data::CanSend(
+                                                                thread,
+                                                                ChatRestriction::SendOther);
+                                                };
+
+                                        box->closeBox();
+
+                                        *shareBox = show->show(
+                                                Box<ShareBox>(ShareBox::Descriptor{
+                                                        .session = session,
+                                                        .countMessagesCallback =
+                                                                std::move(countMessagesCallback),
+                                                        .submitCallback =
+                                                                std::move(submitCallback),
+                                                        .filterCallback =
+                                                                std::move(filterCallback),
+                                                        .moneyRestrictionError =
+                                                                ShareMessageMoneyRestrictionError(),
+                                                }),
+                                                Ui::LayerOption::KeepOther,
+                                                anim::type::normal);
+                                });
+
+                        box->addButton(
+                                tr::lng_cancel(),
+                                [=] {
+                                        box->closeBox();
+                                });
+                }));
+}
+base::weak_qptr<Ui::BoxContent> ShowDirectForwardMessagesBox(
+not_null<Window::SessionNavigation*> navigation,
+MessageIdsList &&items,
+Fn<void()> &&successCallback) {
+const auto session = &navigation->session();
+const auto resolved = session->data().idsToItems(items);
+
+if (resolved.empty()) {
+return { nullptr };
+}
+
+// MRGram v1.0.2:
+// Use Telegram's native itemOrItsGroup() to expand albums.
+auto expandedIds = MessageIdsList();
+for (const auto &item : resolved) {
+const auto groupIds = session->data().itemOrItsGroup(item);
+for (const auto &id : groupIds) {
+if (ranges::find(expandedIds, id) == expandedIds.end()) {
+expandedIds.push_back(id);
+}
+}
+}
+
+const auto expanded = session->data().idsToItems(expandedIds);
+
+if (expanded.empty()) {
+return { nullptr };
+}
+
+const auto callback = std::make_shared<Fn<void()>>(
+std::move(successCallback));
+
+const auto show = navigation->parentController()->uiShow();
+const auto shareBox =
+std::make_shared<base::weak_qptr<Ui::BoxContent>>();
+const auto sending = std::make_shared<bool>(false);
+
+auto countMessagesCallback =
+[=](const TextWithTags &) {
+return int(expanded.size());
+};
+
+auto submitCallback =
+[=](
+std::vector<not_null<Data::Thread*>> &&result,
+Fn<bool()> checkPaid,
+TextWithTags &&,
+Api::SendOptions options,
+Data::ForwardOptions) {
+if (*sending || result.empty()) {
+return;
+}
+
+if (!checkPaid()) {
+return;
+}
+
+*sending = true;
+
+for (const auto &thread : result) {
+        auto index = 0;
+
+        while (index < int(expanded.size())) {
+                const auto first = expanded[index];
+                const auto firstGroupId = first->groupId();
+
+                auto batch = std::vector<Api::ForwardProMediaItem>();
+                auto next = index;
+
+                // Real Telegram album:
+                // collect only items with the same original groupId.
+                if (firstGroupId) {
+                        while (next < int(expanded.size())
+                                && expanded[next]->groupId() == firstGroupId) {
+                                const auto item = expanded[next];
+                                const auto original = item->originalText();
 
                                 if (const auto media = item->media()) {
                                         if (const auto photo = media->photo()) {
-                                                Api::SendExistingPhoto(
-                                                        std::move(message),
-                                                        photo);
+                                                batch.push_back({
+                                                        .photo = photo,
+                                                        .document = nullptr,
+                                                        .origin = Data::FileOrigin(),
+                                                        .caption = original,
+                                                });
                                         } else if (const auto document =
                                                         media->document()) {
-                                                Api::SendExistingDocument(
-                                                        std::move(message),
-                                                        document);
-                                        } else {
-                                                session->api().sendMessage(
-                                                        std::move(message));
+                                                batch.push_back({
+                                                        .photo = nullptr,
+                                                        .document = document,
+                                                        .origin =
+                                                                document->stickerOrGifOrigin(),
+                                                        .caption = original,
+                                                });
                                         }
-                                } else {
-                                        session->api().sendMessage(
-                                                std::move(message));
+                                }
+
+                                ++next;
+                        }
+                } else {
+                        // Independent post: exactly one item.
+                        const auto original = first->originalText();
+
+                        if (const auto media = first->media()) {
+                                if (const auto photo = media->photo()) {
+                                        batch.push_back({
+                                                .photo = photo,
+                                                .document = nullptr,
+                                                .origin = Data::FileOrigin(),
+                                                .caption = original,
+                                        });
+                                } else if (const auto document =
+                                                media->document()) {
+                                        batch.push_back({
+                                                .photo = nullptr,
+                                                .document = document,
+                                                .origin =
+                                                        document->stickerOrGifOrigin(),
+                                                .caption = original,
+                                        });
                                 }
                         }
 
-                        if (const auto weak = *shareBox) {
-                                weak->closeBox();
-                        }
+                        next = index + 1;
+                }
 
-                        if (*callback) {
-                                (*callback)();
-                        }
+                if (!batch.empty()) {
+                        auto action = Api::SendAction(thread, options);
+                        action.clearDraft = false;
 
-                        show->showToast(
-                                tr::lng_share_done(tr::now));
-                };
+                        Api::SendForwardProAlbum(
+                                std::move(action),
+                                std::move(batch));
+                } else {
+                        // Unsupported/non-media item keeps normal copy-send.
+                        const auto original = first->originalText();
 
-        auto filterCallback =
-                [](not_null<Data::Thread*> thread) {
-                        if (const auto user = thread->peer()->asUser()) {
-                                if (user->canSendIgnoreMoneyRestrictions()) {
-                                        return true;
-                                }
-                        }
+                        auto message = Api::MessageToSend(
+                                Api::SendAction(thread, options));
 
-                        return Data::CanSend(
-                                thread,
-                                ChatRestriction::SendOther);
-                };
+                        message.textWithTags = TextWithTags{
+                                original.text,
+                                TextUtilities::ConvertEntitiesToTextTags(
+                                        original.entities)
+                        };
+                        message.action.clearDraft = false;
 
-        *shareBox = show->show(
-                Box<ShareBox>(ShareBox::Descriptor{
-                        .session = session,
-                        .countMessagesCallback =
-                                std::move(countMessagesCallback),
-                        .submitCallback =
-                                std::move(submitCallback),
-                        .filterCallback =
-                                std::move(filterCallback),
-                        .moneyRestrictionError =
-                                ShareMessageMoneyRestrictionError(),
-                }),
-                Ui::LayerOption::KeepOther,
-                anim::type::normal);
+                        session->api().sendMessage(
+                                std::move(message));
+                }
 
-        return *shareBox;
+                index = next;
+        }
 }
+if (const auto weak = *shareBox) {
+weak->closeBox();
+}
+
+if (*callback) {
+(*callback)();
+}
+
+show->showToast(
+tr::lng_share_done(tr::now));
+};
+
+auto filterCallback =
+[](not_null<Data::Thread*> thread) {
+if (const auto user = thread->peer()->asUser()) {
+if (user->canSendIgnoreMoneyRestrictions()) {
+return true;
+}
+}
+
+return Data::CanSend(
+thread,
+ChatRestriction::SendOther);
+};
+
+*shareBox = show->show(
+Box<ShareBox>(ShareBox::Descriptor{
+.session = session,
+.countMessagesCallback =
+std::move(countMessagesCallback),
+.submitCallback =
+std::move(submitCallback),
+.filterCallback =
+std::move(filterCallback),
+.moneyRestrictionError =
+ShareMessageMoneyRestrictionError(),
+}),
+Ui::LayerOption::KeepOther,
+anim::type::normal);
+
+return *shareBox;
+}
+
 base::weak_qptr<Ui::BoxContent> ShowShareGameBox(
 		not_null<Window::SessionNavigation*> navigation,
 		not_null<UserData*> bot,
@@ -5074,6 +5257,7 @@ void ForwardToSelf(
 }
 
 } // namespace Window
+
 
 
 

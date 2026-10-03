@@ -799,6 +799,231 @@ void SendExistingPhoto(
 		std::move(localMessageId));
 }
 
+void SendForwardProAlbum(
+                SendAction action,
+                std::vector<ForwardProMediaItem> items) {
+        if (items.empty()) {
+                return;
+        }
+
+        const auto history = action.history;
+        const auto peer = history->peer;
+        const auto session = &history->session();
+        const auto api = &session->api();
+
+        action.clearDraft = false;
+        action.generateLocal = true;
+        api->sendAction(action);
+
+        const auto multi = (items.size() > 1);
+        const auto groupId = multi
+                ? base::RandomValue<uint64>()
+                : uint64(0);
+
+        struct Request {
+                ForwardProMediaItem item;
+                FullMsgId localId;
+                uint64 randomId = 0;
+                TextWithEntities caption;
+        };
+
+        auto requests = std::vector<Request>();
+        requests.reserve(items.size());
+
+        auto flags = NewMessageFlags(peer);
+
+        if (action.replyTo) {
+                flags |= MessageFlag::HasReplyInfo;
+        }
+
+        InnerFillMessagePostFlags(action.options, peer, flags);
+
+        if (action.options.scheduled) {
+                flags |= MessageFlag::IsOrWasScheduled;
+        }
+
+        if (action.options.shortcutId) {
+                flags |= MessageFlag::ShortcutMessage;
+        }
+
+        if (action.options.invertCaption) {
+                flags |= MessageFlag::InvertMedia;
+        }
+
+        for (auto &source : items) {
+                const auto newId = FullMsgId(
+                        peer->id,
+                        session->data().nextLocalMessageId());
+
+                const auto randomId = base::RandomValue<uint64>();
+
+                session->data().registerMessageRandomId(
+                        randomId,
+                        newId);
+
+                auto caption = source.caption;
+
+                if (source.photo) {
+                        history->addNewLocalMessage({
+                                .id = newId.msg,
+                                .flags = flags,
+                                .from = NewMessageFromId(action),
+                                .replyTo = action.replyTo,
+                                .date = NewMessageDate(action.options),
+                                .scheduleRepeatPeriod =
+                                        action.options.scheduleRepeatPeriod,
+                                .shortcutId = action.options.shortcutId,
+                                .postAuthor = NewMessagePostAuthor(action),
+                                .groupedId = groupId,
+                                .effectId = action.options.effectId,
+                                .suggest =
+                                        HistoryMessageSuggestInfo(action.options),
+                                .mediaSpoiler =
+                                        action.options.mediaSpoiler,
+                        }, not_null<PhotoData*>(source.photo), caption);
+                } else if (source.document) {
+                        history->addNewLocalMessage({
+                                .id = newId.msg,
+                                .flags = flags,
+                                .from = NewMessageFromId(action),
+                                .replyTo = action.replyTo,
+                                .date = NewMessageDate(action.options),
+                                .scheduleRepeatPeriod =
+                                        action.options.scheduleRepeatPeriod,
+                                .shortcutId = action.options.shortcutId,
+                                .postAuthor = NewMessagePostAuthor(action),
+                                .groupedId = groupId,
+                                .effectId = action.options.effectId,
+                                .suggest =
+                                        HistoryMessageSuggestInfo(action.options),
+                                .mediaSpoiler =
+                                        action.options.mediaSpoiler,
+                        }, not_null<DocumentData*>(source.document), caption);
+                } else {
+                        continue;
+                }
+
+                requests.push_back({
+                        .item = std::move(source),
+                        .localId = newId,
+                        .randomId = randomId,
+                        .caption = std::move(caption),
+                });
+        }
+
+        if (requests.empty()) {
+                api->finishForwarding(action);
+                return;
+        }
+
+        using Flag = MTPmessages_SendMultiMedia::Flag;
+
+        auto sendFlags = Flag(0)
+                | (action.replyTo
+                        ? Flag::f_reply_to
+                        : Flag(0))
+                | (ShouldSendSilent(peer, action.options)
+                        ? Flag::f_silent
+                        : Flag(0))
+                | (action.options.scheduled
+                        ? Flag::f_schedule_date
+                        : Flag(0))
+                | (action.options.sendAs
+                        ? Flag::f_send_as
+                        : Flag(0))
+                | (action.options.shortcutId
+                        ? Flag::f_quick_reply_shortcut
+                        : Flag(0))
+                | (action.options.effectId
+                        ? Flag::f_effect
+                        : Flag(0))
+                | (action.options.invertCaption
+                        ? Flag::f_invert_media
+                        : Flag(0));
+
+        auto media = QVector<MTPInputSingleMedia>();
+        media.reserve(requests.size());
+
+        for (const auto &request : requests) {
+                auto entities = EntitiesToMTP(
+                        session,
+                        request.caption.entities,
+                        ConvertOption::SkipLocal);
+
+                auto input = MTPInputMedia();
+
+                if (request.item.photo) {
+                        input = MTP_inputMediaPhoto(
+                                MTP_flags(0),
+                                request.item.photo->mtpInput(),
+                                MTPint(),
+                                MTPInputDocument());
+                } else {
+                        using DocumentFlag =
+                                MTPDinputMediaDocument::Flag;
+
+                        input = MTP_inputMediaDocument(
+                                MTP_flags(
+                                        action.options.mediaSpoiler
+                                                ? DocumentFlag::f_spoiler
+                                                : DocumentFlag(0)),
+                                request.item.document->mtpInput(),
+                                MTPInputPhoto(),
+                                MTPint(),
+                                MTPint(),
+                                MTPstring());
+                }
+
+                using SingleFlag = MTPDinputSingleMedia::Flag;
+
+                media.push_back(MTP_inputSingleMedia(
+                        MTP_flags(
+                                !entities.v.isEmpty()
+                                        ? SingleFlag::f_entities
+                                        : SingleFlag(0)),
+                        std::move(input),
+                        MTP_long(request.randomId),
+                        MTP_string(request.caption.text),
+                        entities));
+        }
+
+        auto &histories = history->owner().histories();
+
+        histories.sendPreparedMessage(
+                history,
+                action.replyTo,
+                uint64(0),
+                Data::Histories::PrepareMessage<
+                        MTPmessages_SendMultiMedia>(
+                        MTP_flags(sendFlags),
+                        peer->input(),
+                        Data::Histories::ReplyToPlaceholder(),
+                        MTP_vector<MTPInputSingleMedia>(
+                                std::move(media)),
+                        MTP_int(action.options.scheduled),
+                        (action.options.sendAs
+                                ? action.options.sendAs->input()
+                                : MTP_inputPeerEmpty()),
+                        Data::ShortcutIdToMTP(
+                                session,
+                                action.options.shortcutId),
+                        MTP_long(action.options.effectId),
+                        MTP_long(0)),
+                [=](const MTPUpdates &result,
+                        const MTP::Response &response) {
+                        api->finishForwarding(action);
+                },
+                [=](const MTP::Error &error,
+                        const MTP::Response &response) {
+                        for (const auto &request : requests) {
+                                api->sendMessageFail(
+                                        error,
+                                        peer,
+                                        request.randomId,
+                                        request.localId);
+                        }
+                });
+}
 bool SendDice(MessageToSend &message) {
 	const auto full = QStringView(message.textWithTags.text).trimmed();
 	auto length = 0;

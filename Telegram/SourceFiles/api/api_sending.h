@@ -49,6 +49,18 @@ void SendExistingPhoto(
 	not_null<PhotoData*> photo,
 	std::optional<MsgId> localMessageId = std::nullopt);
 
+
+// MRGram Forward Pro native album support.
+struct ForwardProMediaItem {
+        PhotoData *photo = nullptr;
+        DocumentData *document = nullptr;
+        Data::FileOrigin origin;
+        TextWithEntities caption;
+};
+
+void SendForwardProAlbum(
+        SendAction action,
+        std::vector<ForwardProMediaItem> items);
 bool SendDice(MessageToSend &message);
 
 // We can't create Data::LocationPoint() and use it
