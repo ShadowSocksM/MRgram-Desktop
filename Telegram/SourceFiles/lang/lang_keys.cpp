@@ -105,11 +105,28 @@ struct SolarHijriDate {
 [[nodiscard]] QString SolarDatePretty(const QDate &date) {
         const auto solar = GregorianToSolarHijri(date);
 
-        return PersianDigits(QString::number(solar.day))
+        static const auto months = std::array{
+                u"Farvardin"_q,
+                u"Ordibehesht"_q,
+                u"Khordad"_q,
+                u"Tir"_q,
+                u"Mordad"_q,
+                u"Shahrivar"_q,
+                u"Mehr"_q,
+                u"Aban"_q,
+                u"Azar"_q,
+                u"Dey"_q,
+                u"Bahman"_q,
+                u"Esfand"_q,
+        };
+
+        if (solar.month < 1 || solar.month > 12) {
+                return QString::number(solar.day);
+        }
+
+        return QString::number(solar.day)
                 + u" "_q
-                + SolarMonthName(solar.month)
-                + u" "_q
-                + PersianDigits(QString::number(solar.year));
+                + months[solar.month - 1];
 }
 template <typename WithYear, typename WithoutYear>
 inline QString langDateMaybeWithYear(
