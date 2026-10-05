@@ -2607,12 +2607,14 @@ void Element::setDisplayDate(bool displayDate) {
 	if (item->hideDisplayDate()) {
 		displayDate = false;
 	}
-	if (displayDate && !Has<DateBadge>()) {
-		AddComponents(DateBadge::Bit());
-		Get<DateBadge>()->init(
-			ItemDateText(item, (_flags & Flag::ScheduledUntilOnline)));
-		setPendingResize();
-	} else if (!displayDate && Has<DateBadge>()) {
+	if (displayDate) {
+                if (!Has<DateBadge>()) {
+                        AddComponents(DateBadge::Bit());
+                }
+                Get<DateBadge>()->init(
+                        ItemDateText(item, (_flags & Flag::ScheduledUntilOnline)));
+                setPendingResize();
+        } else if (Has<DateBadge>()) {
 		RemoveComponents(DateBadge::Bit());
 		setPendingResize();
 	}

@@ -5,8 +5,7 @@ the official desktop application for the Telegram messaging service.
 For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
-#include "history/history.h"
-
+#include "history/history.h"
 #include "history/view/history_view_element.h"
 #include "history/view/history_view_item_preview.h"
 #include "history/view/history_view_translate_tracker.h"
@@ -3373,9 +3372,12 @@ void History::updateChatListExistence() {
 }
 
 bool History::useTopPromotion() const {
-	if (!isTopPromoted()) {
-		return false;
-	} else if (const auto channel = peer->asChannel()) {
+if (!isTopPromoted()) {
+return false;
+}
+
+
+if (const auto channel = peer->asChannel()) {
 		return !isPinnedDialog(FilterId()) && !channel->amIn();
 	} else if (const auto user = peer->asUser()) {
 		return !isPinnedDialog(FilterId()) && user->isBot() && isEmpty();

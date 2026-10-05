@@ -1,4 +1,4 @@
-﻿#include "settings/sections/settings_yukigram.h"
+#include "settings/sections/settings_yukigram.h"
 #include "settings/sections/settings_yukigram_plugins.h"
 #include "yukigram/options_database.h"
 
@@ -231,6 +231,7 @@ void BuildRow(SectionBuilder &builder, Yukigram::Options::Option<T> &o) {
 
 const std::string_view Categories[] = {
 	"interface",
+"privacy",
 	"info",
 	"dialogs",
 	"chat",

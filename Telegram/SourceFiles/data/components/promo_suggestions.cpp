@@ -5,7 +5,8 @@ the official desktop application for the Telegram messaging service.
 For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
-#include "data/components/promo_suggestions.h"
+#include "data/components/promo_suggestions.h"
+#include "yukigram/settings/hide_proxy_sponsor.h"
 
 #include "api/api_text_entities.h"
 #include "apiwrap.h"
@@ -131,16 +132,20 @@ void PromoSuggestions::refreshTopPromotion() {
 					|= _dismissedSuggestions.emplace(qs(suggestion)).second;
 			}
 
-			if (const auto peer = data.vpeer()) {
-				const auto peerId = peerFromMTP(*peer);
-				const auto history = _session->data().history(peerId);
-				setTopPromoted(
-					history,
-					data.vpsa_type().value_or_empty(),
-					data.vpsa_message().value_or_empty());
-			} else {
-				setTopPromoted(nullptr, QString(), QString());
-			}
+                        // MRGram: Hide only proxy-sponsored promotion.
+                        if (Yukigram::Settings::HideProxySponsor->current()
+                                && data.is_proxy()) {
+                                setTopPromoted(nullptr, QString(), QString());
+                        } else if (const auto peer = data.vpeer()) {
+                                const auto peerId = peerFromMTP(*peer);
+                                const auto history = _session->data().history(peerId);
+                                setTopPromoted(
+                                        history,
+                                        data.vpsa_type().value_or_empty(),
+                                        data.vpsa_message().value_or_empty());
+                        } else {
+                                setTopPromoted(nullptr, QString(), QString());
+                        }
 
 			auto changedCustom = false;
 			auto custom = data.vcustom_pending_suggestion()

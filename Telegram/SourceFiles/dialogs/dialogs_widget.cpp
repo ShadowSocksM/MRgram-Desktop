@@ -7,6 +7,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "dialogs/dialogs_widget.h"
 
+#include "yukigram/settings/hide_stories.h"
+
 #include "base/call_delayed.h"
 #include "base/qt/qt_key_modifiers.h"
 #include "base/options.h"
@@ -1704,7 +1706,12 @@ void Widget::setupMainMenuToggle() {
 }
 
 void Widget::setupStories() {
-	_stories->verticalScrollEvents(
+	// MRGram: Hide Stories live toggle.
+Yukigram::Settings::HideStories->value(
+) | rpl::on_next([=](bool) {
+updateStoriesVisibility();
+}, lifetime());
+_stories->verticalScrollEvents(
 	) | rpl::on_next([=](not_null<QWheelEvent*> e) {
 		_scroll->viewportEvent(e);
 	}, _stories->lifetime());
@@ -2857,7 +2864,8 @@ void Widget::updateStoriesVisibility() {
 			&& _subsectionTopBar->searchMode());
 	const auto pulledDown = _scroll->position().overscroll
 		< -st::dialogsFilterSkip;
-	const auto hiddenInstant = _showAnimation
+	const auto hiddenInstant = Yukigram::Settings::HideStories->current()
+|| _showAnimation
 		|| _openedForum
 		|| _openedCommunity
 		|| (widthAnimation && !suggestionsAnimation)
@@ -4442,7 +4450,8 @@ void Widget::updateLockUnlockVisibility(anim::type animated) {
 	const auto widthAnimation = !_widthAnimationCache.isNull();
 	const auto suggestionsAnimation = widthAnimation
 		&& (!_suggestions || !_hidingSuggestions.empty());
-	const auto hiddenInstant = _showAnimation
+	const auto hiddenInstant = Yukigram::Settings::HideStories->current()
+|| _showAnimation
 		|| _openedForum
 		|| (widthAnimation && !suggestionsAnimation)
 		|| _childList

@@ -11,6 +11,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "lang/lang_file_parser.h"
 #include "ui/integration.h"
 #include "yukigram/settings/time_with_seconds.h"
+#include "yukigram/settings/solar_date.h"
 
 #include <QtCore/QLocale>
 
@@ -18,6 +19,98 @@ namespace {
 
 constexpr auto kDefaultLanguage = "en"_cs;
 
+struct SolarHijriDate {
+        int year = 0;
+        int month = 0;
+        int day = 0;
+};
+
+[[nodiscard]] SolarHijriDate GregorianToSolarHijri(const QDate &date) {
+        const auto gy = date.year();
+        const auto gm = date.month();
+        const auto gd = date.day();
+
+        const int gdm[12] = {
+                0, 31, 59, 90, 120, 151,
+                181, 212, 243, 273, 304, 334
+        };
+
+        auto jy = (gy <= 1600) ? 0 : 979;
+        const auto gy2 = gy - ((gy <= 1600) ? 621 : 1600);
+        const auto gyAdjusted = (gm > 2) ? (gy2 + 1) : gy2;
+
+        auto days = 365 * gy2
+                + (gyAdjusted + 3) / 4
+                - (gyAdjusted + 99) / 100
+                + (gyAdjusted + 399) / 400
+                - 80
+                + gd
+                + gdm[gm - 1];
+
+        jy += 33 * (days / 12053);
+        days %= 12053;
+
+        jy += 4 * (days / 1461);
+        days %= 1461;
+
+        if (days > 365) {
+                jy += (days - 1) / 365;
+                days = (days - 1) % 365;
+        }
+
+        const auto jm = (days < 186)
+                ? (1 + days / 31)
+                : (7 + (days - 186) / 30);
+
+        const auto jd = 1 + ((days < 186)
+                ? (days % 31)
+                : ((days - 186) % 30));
+
+        return { jy, jm, jd };
+}
+
+[[nodiscard]] QString SolarMonthName(int month) {
+        static const QStringList names = {
+                QString::fromUtf8("\xD9\x81\xD8\xB1\xD9\x88\xD8\xB1\xD8\xAF\xDB\x8C\xD9\x86"),
+                QString::fromUtf8("\xD8\xA7\xD8\xB1\xD8\xAF\xDB\x8C\xD8\xA8\xD9\x87\xD8\xB4\xD8\xAA"),
+                QString::fromUtf8("\xD8\xAE\xD8\xB1\xD8\xAF\xD8\xA7\xD8\xAF"),
+                QString::fromUtf8("\xD8\xAA\xDB\x8C\xD8\xB1"),
+                QString::fromUtf8("\xD9\x85\xD8\xB1\xD8\xAF\xD8\xA7\xD8\xAF"),
+                QString::fromUtf8("\xD8\xB4\xD9\x87\xD8\xB1\xDB\x8C\xD9\x88\xD8\xB1"),
+                QString::fromUtf8("\xD9\x85\xD9\x87\xD8\xB1"),
+                QString::fromUtf8("\xD8\xA2\xD8\xA8\xD8\xA7\xD9\x86"),
+                QString::fromUtf8("\xD8\xA2\xD8\xB0\xD8\xB1"),
+                QString::fromUtf8("\xD8\xAF\xDB\x8C"),
+                QString::fromUtf8("\xD8\xA8\xD9\x87\xD9\x85\xD9\x86"),
+                QString::fromUtf8("\xD8\xA7\xD8\xB3\xD9\x81\xD9\x86\xD8\xAF")
+        };
+
+        return (month >= 1 && month <= 12)
+                ? names[month - 1]
+                : u"MONTH_ERR"_q;
+}
+
+[[nodiscard]] QString PersianDigits(QString text) {
+        static const QString latin = u"0123456789"_q;
+        static const QString persian = QString::fromUtf8(
+                "\xDB\xB0\xDB\xB1\xDB\xB2\xDB\xB3\xDB\xB4"
+                "\xDB\xB5\xDB\xB6\xDB\xB7\xDB\xB8\xDB\xB9");
+
+        for (auto i = 0; i != 10; ++i) {
+                text.replace(latin[i], persian[i]);
+        }
+        return text;
+}
+
+[[nodiscard]] QString SolarDatePretty(const QDate &date) {
+        const auto solar = GregorianToSolarHijri(date);
+
+        return PersianDigits(QString::number(solar.day))
+                + u" "_q
+                + SolarMonthName(solar.month)
+                + u" "_q
+                + PersianDigits(QString::number(solar.year));
+}
 template <typename WithYear, typename WithoutYear>
 inline QString langDateMaybeWithYear(
 		QDate date,
@@ -83,7 +176,11 @@ QString langFullName(
 }
 
 QString langDayOfMonth(const QDate &date) {
-	auto day = date.day();
+        if (Yukigram::Settings::SolarDate->current()) {
+                return SolarDatePretty(date);
+        }
+
+        auto day = date.day();
 	return langDateMaybeWithYear(date, [&](int month, int year) {
 		return tr::lng_month_day_year(
 			tr::now,
@@ -104,7 +201,11 @@ QString langDayOfMonth(const QDate &date) {
 }
 
 QString langDayOfMonthFull(const QDate &date) {
-	auto day = date.day();
+        if (Yukigram::Settings::SolarDate->current()) {
+                return SolarDatePretty(date);
+        }
+
+        auto day = date.day();
 	return langDateMaybeWithYear(date, [day](int month, int year) {
 		return tr::lng_month_day_year(
 			tr::now,
