@@ -633,7 +633,7 @@ bool AddForwardMessageAction(
                 }
         }, &st::menuIconForward);
 
-        menu->addAction(u"Direct Forward"_q, [=] {
+        menu->addAction(u"Forward Direct"_q, [=] {
                 if (const auto item = owner->message(itemId)) {
                         Window::ShowDirectForwardMessagesBox(
                                 request.navigation,

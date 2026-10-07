@@ -3442,7 +3442,7 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 					_widget->forwardProSelected();
 				}, &st::menuIconForward);
 
-				_menu->addAction(u"Direct Forward"_q, [=] {
+				_menu->addAction(u"Forward Direct"_q, [=] {
 					_widget->directForwardSelected();
 				}, &st::menuIconForward);
 			}
@@ -3482,7 +3482,7 @@ _controller,
 MessageIdsList{ 1, itemId });
 }, &st::menuIconForward);
 
-_menu->addAction(u"Direct Forward"_q, [=] {
+_menu->addAction(u"Forward Direct"_q, [=] {
 Window::ShowDirectForwardMessagesBox(
 _controller,
 MessageIdsList{ 1, itemId });
@@ -3777,7 +3777,7 @@ MessageIdsList{ 1, itemId });
 					_widget->forwardProSelected();
 				}, &st::menuIconForward);
 
-				_menu->addAction(u"Direct Forward"_q, [=] {
+				_menu->addAction(u"Forward Direct"_q, [=] {
 					_widget->directForwardSelected();
 				}, &st::menuIconForward);
 			}
@@ -3815,7 +3815,7 @@ _menu->addAction(u"Forward Pro"_q, [=] {
 forwardProAsGroup(itemId);
 }, &st::menuIconForward);
 
-_menu->addAction(u"Direct Forward"_q, [=] {
+_menu->addAction(u"Forward Direct"_q, [=] {
 if (const auto item = _controller->session().data().message(itemId)) {
 Window::ShowDirectForwardMessagesBox(
 _controller,
