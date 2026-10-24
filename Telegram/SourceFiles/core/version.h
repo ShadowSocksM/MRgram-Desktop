@@ -20,8 +20,8 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 // used in Updater.cpp and Setup.iss for Windows
 constexpr auto AppId = "{41AD6C1C-61E6-4452-B223-10D062971437}"_cs;
 constexpr auto AppNameOld = "Telegram Win (Unofficial)"_cs;
-constexpr auto AppName = "Sushi"_cs;
-constexpr auto AppFile = "sushi"_cs;
+constexpr auto AppName = "SushiGram Desktop"_cs;
+constexpr auto AppFile = "SushiGram"_cs;
 constexpr auto AppVersion = 7002009;
 constexpr auto AppVersionStr = "7.2.9";
 constexpr auto AppBetaVersion = false;
