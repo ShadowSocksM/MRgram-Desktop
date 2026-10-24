@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -642,6 +642,9 @@ bool AddForwardMessageAction(
                                         : MessageIdsList{ 1, itemId }));
                 }
         }, &st::menuIconForward);
+
+
+
         // MRGRAM_BUILTIN_FORWARD_END
 
         return true;

@@ -10802,13 +10802,13 @@ void HistoryWidget::forwardProSelected() {
                 _list->getSelectedForwardItems());
 }
 
-void HistoryWidget::directForwardSelected() {
+void HistoryWidget::directForwardSelected(Window::DirectForwardMode mode) {
         if (!_list) {
                 return;
         }
         Window::ShowDirectForwardMessagesBox(
                 controller(),
-                _list->getSelectedForwardItems());
+                _list->getSelectedForwardItems(), nullptr, mode);
 }
 
 void HistoryWidget::confirmDeleteSelected() {

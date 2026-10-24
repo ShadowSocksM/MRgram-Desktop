@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -3445,6 +3445,8 @@ void HistoryInner::showContextMenu(QContextMenuEvent *e, bool showFromTouch) {
 				_menu->addAction(u"Forward Direct"_q, [=] {
 					_widget->directForwardSelected();
 				}, &st::menuIconForward);
+
+
 			}
 			if (selectedState.count > 0 && selectedState.canDeleteCount == selectedState.count) {
 				_menu->addAction(tr::lng_context_delete_selected(tr::now), [=] {
@@ -3487,6 +3489,8 @@ Window::ShowDirectForwardMessagesBox(
 _controller,
 MessageIdsList{ 1, itemId });
 }, &st::menuIconForward);
+
+
 // MRGRAM_FORWARD_PRO_END
 }
                                 if (HistoryView::CanAddOfferToMessage(item)) {
@@ -3780,6 +3784,8 @@ MessageIdsList{ 1, itemId });
 				_menu->addAction(u"Forward Direct"_q, [=] {
 					_widget->directForwardSelected();
 				}, &st::menuIconForward);
+
+
 			}
 			if (selectedState.count > 0 && selectedState.count == selectedState.canDeleteCount) {
 				_menu->addAction(tr::lng_context_delete_selected(tr::now), [=] {
@@ -3822,6 +3828,8 @@ _controller,
 _controller->session().data().itemOrItsGroup(item));
 }
 }, &st::menuIconForward);
+
+
 				}
 				if (HistoryView::CanAddOfferToMessage(item)) {
 					_menu->addAction(tr::lng_context_add_offer(tr::now), [=] {

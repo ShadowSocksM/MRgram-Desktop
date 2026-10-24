@@ -18,12 +18,17 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "data/data_report.h"
 #include "window/section_widget.h"
 #include "window/window_session_controller.h"
+#include "window/window_peer_menu.h"
 #include "ui/widgets/fields/input_field.h"
 #include "mtproto/sender.h"
 
 enum class SendMediaType;
 class MessageLinksParser;
 struct InlineBotQuery;
+
+namespace Window {
+enum class DirectForwardMode;
+}
 
 namespace MTP {
 class Error;
@@ -306,7 +311,7 @@ public:
 
 	void forwardSelected(int steal = 0);
         void forwardProSelected();
-        void directForwardSelected();
+        void directForwardSelected(Window::DirectForwardMode mode = Window::DirectForwardMode::All);
 	void confirmDeleteSelected();
 	void clearSelected();
 

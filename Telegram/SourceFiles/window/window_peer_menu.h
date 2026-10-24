@@ -1,4 +1,4 @@
-﻿/*
+/*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
 
@@ -216,10 +216,16 @@ base::weak_qptr<Ui::BoxContent> ShowForwardProMessagesBox(
         MessageIdsList &&items,
         Fn<void()> &&successCallback = nullptr);
 
+enum class DirectForwardMode {
+    All,
+    Text,
+    Quote,
+};
 base::weak_qptr<Ui::BoxContent> ShowDirectForwardMessagesBox(
         not_null<Window::SessionNavigation*> navigation,
         MessageIdsList &&items,
-        Fn<void()> &&successCallback = nullptr);
+        Fn<void()> &&successCallback = nullptr,
+        DirectForwardMode mode = DirectForwardMode::All);
 
 base::weak_qptr<Ui::BoxContent> ShowShareUrlBox(
 	not_null<Window::SessionNavigation*> navigation,

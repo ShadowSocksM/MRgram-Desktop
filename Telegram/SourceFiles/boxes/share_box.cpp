@@ -5,6 +5,7 @@ the official desktop application for the Telegram messaging service.
 For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
+#include <QTimer>
 #include "boxes/share_box.h"
 
 #include "api/api_premium.h"
@@ -619,7 +620,7 @@ void ShareBox::showMenu(not_null<Ui::RpWidget*> parent) {
 void ShareBox::createButtons() {
 	clearButtons();
 	if (_hasSelected) {
-		const auto send = addButton(tr::lng_share_confirm(), [=] {
+		if (_descriptor.sushiDirectMode) { addButton(rpl::single((_sushiDirectText && _sushiDirectQuote) ? QStringLiteral("[x] All") : QStringLiteral("[ ] All")), [=] { const auto enable = !(_sushiDirectText && _sushiDirectQuote); _sushiDirectText = enable; _sushiDirectQuote = enable; QTimer::singleShot(0, this, [=] { createButtons(); }); }, st::sushiDirectCompactButton); addButton(rpl::single(_sushiDirectText ? QStringLiteral("[x] Text") : QStringLiteral("[ ] Text")), [=] { _sushiDirectText = !_sushiDirectText; if (!_sushiDirectText) _sushiDirectQuote = false; QTimer::singleShot(0, this, [=] { createButtons(); }); }, st::sushiDirectCompactButton); addButton(rpl::single(_sushiDirectQuote ? QStringLiteral("[x] Quote") : QStringLiteral("[ ] Quote")), [=] { if (_sushiDirectText) _sushiDirectQuote = !_sushiDirectQuote; QTimer::singleShot(0, this, [=] { createButtons(); }); }, st::sushiDirectCompactButton); addButton(tr::lng_share_confirm(), [=] { submit({}); }); } else { const auto send = addButton(tr::lng_share_confirm(), [=] {
 			submit({});
 		});
 		_forwardOptions.sendersCount
@@ -637,7 +638,7 @@ void ShareBox::createButtons() {
 		send->setText(PaidSendButtonText(
 			_starsToSend.value(),
 			tr::lng_share_confirm()));
-	} else if (_descriptor.copyCallback) {
+	} } else if (_descriptor.copyCallback) {
 		addButton(_copyLinkText.value(), [=] { copyLink(); });
 	}
 	addButton(tr::lng_cancel(), [=] { closeBox(); });
@@ -750,7 +751,11 @@ void ShareBox::submit(Api::SendOptions options) {
 		}
 		return true;
 	};
-	if (const auto onstack = _descriptor.submitCallback) {
+	if (_descriptor.sushiDirectMode && _descriptor.sushiDirectOptionsCallback) {
+    _descriptor.sushiDirectOptionsCallback(_sushiDirectText, _sushiDirectQuote);
+}
+if (_descriptor.sushiDirectMode && _descriptor.sushiDirectModeCallback) { _descriptor.sushiDirectModeCallback(_sushiDirectSelectedMode); }
+    if (const auto onstack = _descriptor.submitCallback) {
 		const auto forwardOptions = !_descriptor.forwardOptions.show
 			? Data::ForwardOptions::PreserveInfo
 			: (_forwardOptions.captionsCount

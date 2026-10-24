@@ -386,7 +386,7 @@ MainMenu::MainMenu(
 	parentResized();
 
 	_telegram->setMarkedText(tr::link(
-		u"MRgram Desktop"_q,
+		u"Sushi"_q,
 		u"https://github.com/ShadowSocksM/MRgram-Desktop"_q));
 	_telegram->setLinksTrusted();
 	// The canary version is too long for the "Version {version}" form.

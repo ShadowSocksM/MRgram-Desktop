@@ -107,7 +107,7 @@ const auto kMeta = BuildHelper({
                         FileDialog::GetOpenPath(
                                 parent,
                                 u"Install Plugin"_q,
-                                u"MRgram Plugin (*.yukiplugin);;"_q + FileDialog::AllFilesFilter(),
+                                u"Sushi Plugin (*.yukiplugin);;"_q + FileDialog::AllFilesFilter(),
                                 [parent](FileDialog::OpenResult &&result) {
                                         if (result.paths.isEmpty()) {
                                                 return;

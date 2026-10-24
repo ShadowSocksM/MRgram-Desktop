@@ -4158,7 +4158,8 @@ base::weak_qptr<Ui::BoxContent> ShowForwardProMessagesBox(
 base::weak_qptr<Ui::BoxContent> ShowDirectForwardMessagesBox(
 not_null<Window::SessionNavigation*> navigation,
 MessageIdsList &&items,
-Fn<void()> &&successCallback) {
+Fn<void()> &&successCallback,
+DirectForwardMode mode) {
 const auto session = &navigation->session();
 const auto resolved = session->data().idsToItems(items);
 
@@ -4192,6 +4193,9 @@ const auto shareBox =
 std::make_shared<base::weak_qptr<Ui::BoxContent>>();
 const auto sending = std::make_shared<bool>(false);
 
+const auto sushiText = std::make_shared<bool>(true);
+const auto sushiQuote = std::make_shared<bool>(true);
+
 auto countMessagesCallback =
 [=](const TextWithTags &) {
 return int(expanded.size());
@@ -4215,7 +4219,15 @@ return;
 *sending = true;
 
 for (const auto &thread : result) {
-        auto index = 0;
+        const auto sushiCaption = [=](TextWithEntities caption) {
+    if (!*sushiText) return TextWithEntities{};
+    if (*sushiQuote && !caption.text.isEmpty()) {
+        caption.entities.push_back(EntityInText(
+            EntityType::Blockquote, 0, caption.text.size()));
+    }
+    return caption;
+};
+auto index = 0;
 
         while (index < int(expanded.size())) {
                 const auto first = expanded[index];
@@ -4238,7 +4250,7 @@ for (const auto &thread : result) {
                                                         .photo = photo,
                                                         .document = nullptr,
                                                         .origin = Data::FileOrigin(),
-                                                        .caption = original,
+                                                        .caption = sushiCaption(original),
                                                 });
                                         } else if (const auto document =
                                                         media->document()) {
@@ -4247,7 +4259,7 @@ for (const auto &thread : result) {
                                                         .document = document,
                                                         .origin =
                                                                 document->stickerOrGifOrigin(),
-                                                        .caption = original,
+                                                        .caption = sushiCaption(original),
                                                 });
                                         }
                                 }
@@ -4264,7 +4276,7 @@ for (const auto &thread : result) {
                                                 .photo = photo,
                                                 .document = nullptr,
                                                 .origin = Data::FileOrigin(),
-                                                .caption = original,
+                                                .caption = sushiCaption(original),
                                         });
                                 } else if (const auto document =
                                                 media->document()) {
@@ -4273,7 +4285,7 @@ for (const auto &thread : result) {
                                                 .document = document,
                                                 .origin =
                                                         document->stickerOrGifOrigin(),
-                                                .caption = original,
+                                                .caption = sushiCaption(original),
                                         });
                                 }
                         }
@@ -4290,7 +4302,11 @@ for (const auto &thread : result) {
                                 std::move(batch));
                 } else {
                         // Unsupported/non-media item keeps normal copy-send.
-                        const auto original = first->originalText();
+                        const auto original = sushiCaption(first->originalText());
+                        if (original.text.isEmpty()) {
+                            index = next;
+                            continue;
+                        }
 
                         auto message = Api::MessageToSend(
                                 Api::SendAction(thread, options));
@@ -4343,6 +4359,10 @@ std::move(countMessagesCallback),
 std::move(submitCallback),
 .filterCallback =
 std::move(filterCallback),
+.sushiDirectMode = true,
+
+.sushiDirectOptionsCallback = [sushiText, sushiQuote](bool text, bool quote) { *sushiText = text; *sushiQuote = text && quote; },
+
 .moneyRestrictionError =
 ShareMessageMoneyRestrictionError(),
 }),

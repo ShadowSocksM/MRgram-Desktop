@@ -122,6 +122,9 @@ public:
 		CountMessagesCallback countMessagesCallback;
 		SubmitCallback submitCallback;
 		FilterCallback filterCallback;
+		bool sushiDirectMode = false;
+		Fn<void(int)> sushiDirectModeCallback;
+Fn<void(bool, bool)> sushiDirectOptionsCallback;
 		object_ptr<Ui::RpWidget> bottomWidget = { nullptr };
 		rpl::producer<QString> copyLinkText;
 		rpl::producer<QString> titleOverride;
@@ -191,6 +194,9 @@ private:
 	QPointer<Inner> _inner;
 
 	bool _hasSelected = false;
+	int _sushiDirectSelectedMode = 0;
+bool _sushiDirectText = true;
+bool _sushiDirectQuote = true;
 	rpl::variable<QString> _copyLinkText;
 	rpl::variable<int> _starsToSend;
 
