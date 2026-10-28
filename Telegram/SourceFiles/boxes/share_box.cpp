@@ -1,3 +1,4 @@
+#include <QLabel>
 /*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
@@ -286,7 +287,7 @@ void ShareBox::prepareCommentField() {
 void ShareBox::prepare() {
 	prepareCommentField();
 
-	_select->resizeToWidth(st::boxWideWidth);
+	_select->resizeToWidth(st::boxWideWidth - (_descriptor.sushiDirectMode ? 144 : 0));
 	Ui::SendPendingMoveResizeEvents(_select);
 
 	setTitle(_descriptor.titleOverride
@@ -362,6 +363,76 @@ void ShareBox::prepare() {
 		_descriptor.session,
 		{ .suggestCustomEmoji = true });
 
+  // SUSHI_DIRECT_TOGGLES_BEGIN
+  if (_descriptor.sushiDirectMode) {
+      const auto makeToggle = [=](const QString &label, bool checked) {
+          const auto toggle = Ui::CreateChild<Ui::Checkbox>(
+              this,
+              label,
+              checked,
+              st::sushiDirectToggleCheckbox,
+              st::sushiDirectToggle);
+          toggle->show();
+          return toggle;
+      };
+      _sushiDirectTextToggle = makeToggle(
+          QString(),
+          _sushiDirectText);
+      _sushiDirectQuoteToggle = makeToggle(
+          QString(),
+          _sushiDirectQuote);
+
+      // SUSHI_DIRECT_TOGGLE_HANDLERS_BEGIN
+      const auto syncToggles = [=] {
+          _sushiDirectTextToggle->setChecked(
+              _sushiDirectText,
+              Ui::Checkbox::NotifyAboutChange::DontNotify);
+          _sushiDirectQuoteToggle->setChecked(
+              _sushiDirectQuote,
+              Ui::Checkbox::NotifyAboutChange::DontNotify);
+      };
+
+      _sushiDirectTextToggle->checkedChanges()
+      | rpl::on_next([=](bool checked) {
+          _sushiDirectText = checked;
+
+          syncToggles();
+      }, lifetime());
+
+      _sushiDirectQuoteToggle->checkedChanges()
+      | rpl::on_next([=](bool checked) {
+          _sushiDirectQuote = checked;
+          syncToggles();
+      }, lifetime());
+      // SUSHI_DIRECT_TOGGLE_HANDLERS_END
+            // SUSHI_DIRECT_LABELS_BEGIN
+      const auto makeLabel = [=](const QString &text) {
+          const auto label = new QLabel(text, this);
+          label->setAlignment(Qt::AlignCenter);
+          label->setStyleSheet(QStringLiteral(
+              "font-size: 10px; color: #8C98A8; background: transparent;"));
+          label->setFixedSize(68, 16);
+          label->show();
+          return label;
+      };
+
+      _sushiDirectTextLabel = makeLabel(QStringLiteral("Text"));
+      _sushiDirectQuoteLabel = makeLabel(QStringLiteral("Quote"));
+
+      const auto labelX = width() - 144;
+      _sushiDirectTextLabel->move(labelX, 0);
+      _sushiDirectQuoteLabel->move(labelX + 72, 0);
+      _sushiDirectTextLabel->raise();
+      _sushiDirectQuoteLabel->raise();
+      // SUSHI_DIRECT_LABELS_END
+// SUSHI_DIRECT_INITIAL_LAYOUT
+      const auto toggleX = width() - 144;
+      _sushiDirectTextToggle->moveToLeft(toggleX, 18);
+      _sushiDirectQuoteToggle->moveToLeft(toggleX + 72, 18);
+      _sushiDirectTextToggle->raise();
+      _sushiDirectQuoteToggle->raise();
+  }
+  // SUSHI_DIRECT_TOGGLES_END
 	_select->raise();
 
 	{
@@ -499,8 +570,19 @@ void ShareBox::setInnerFocus() {
 void ShareBox::resizeEvent(QResizeEvent *e) {
 	BoxContent::resizeEvent(e);
 
-	_select->resizeToWidth(width());
-	_select->moveToLeft(0, 0);
+	_select->resizeToWidth(width() - (_descriptor.sushiDirectMode ? 144 : 0));
+  _select->moveToLeft(0, 0);
+  if (_descriptor.sushiDirectMode && _sushiDirectTextToggle) {
+      const auto x = width() - 144;
+      _sushiDirectTextToggle->moveToLeft(x, 18);
+      _sushiDirectQuoteToggle->moveToLeft(x + 72, 18);
+
+      if (_sushiDirectTextLabel
+          && _sushiDirectQuoteLabel) {
+          _sushiDirectTextLabel->move(x, 0);
+          _sushiDirectQuoteLabel->move(x + 72, 0);
+      }
+  }
 
 	updateScrollSkips();
 
@@ -620,7 +702,9 @@ void ShareBox::showMenu(not_null<Ui::RpWidget*> parent) {
 void ShareBox::createButtons() {
 	clearButtons();
 	if (_hasSelected) {
-		if (_descriptor.sushiDirectMode) { addButton(rpl::single((_sushiDirectText && _sushiDirectQuote) ? QStringLiteral("[x] All") : QStringLiteral("[ ] All")), [=] { const auto enable = !(_sushiDirectText && _sushiDirectQuote); _sushiDirectText = enable; _sushiDirectQuote = enable; QTimer::singleShot(0, this, [=] { createButtons(); }); }, st::sushiDirectCompactButton); addButton(rpl::single(_sushiDirectText ? QStringLiteral("[x] Text") : QStringLiteral("[ ] Text")), [=] { _sushiDirectText = !_sushiDirectText; if (!_sushiDirectText) _sushiDirectQuote = false; QTimer::singleShot(0, this, [=] { createButtons(); }); }, st::sushiDirectCompactButton); addButton(rpl::single(_sushiDirectQuote ? QStringLiteral("[x] Quote") : QStringLiteral("[ ] Quote")), [=] { if (_sushiDirectText) _sushiDirectQuote = !_sushiDirectQuote; QTimer::singleShot(0, this, [=] { createButtons(); }); }, st::sushiDirectCompactButton); addButton(tr::lng_share_confirm(), [=] { submit({}); }); } else { const auto send = addButton(tr::lng_share_confirm(), [=] {
+		if (_descriptor.sushiDirectMode) {
+            addButton(tr::lng_share_confirm(), [=] { submit({}); });
+        } else { const auto send = addButton(tr::lng_share_confirm(), [=] {
 			submit({});
 		});
 		_forwardOptions.sendersCount

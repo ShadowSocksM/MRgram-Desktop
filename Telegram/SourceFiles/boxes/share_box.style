@@ -37,3 +37,15 @@ shareCommentPadding: margins(5px, 5px, 5px, 5px);
 sushiDirectCompactButton: RoundButton(defaultBoxButton) {
         width: -10px;
 }
+
+sushiDirectToggle: Toggle(defaultToggle) {
+    diameter: 14px;
+    width: 12px;
+}
+
+sushiDirectToggleCheckbox: Checkbox(defaultCheckbox) {
+    width: 68px;
+    margin: margins(0px, 0px, 0px, 0px);
+    textPosition: point(8px, 1px);
+    checkPosition: point(8px, 8px);
+}

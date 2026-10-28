@@ -4219,12 +4219,19 @@ return;
 *sending = true;
 
 for (const auto &thread : result) {
+    if (*sushiQuote) {
+        auto action = Api::SendAction(thread, options);
+        action.clearDraft = false;
+        session->api().forwardMessages(
+            Data::ResolvedForwardDraft{
+                .items = expanded,
+                .options = Data::ForwardOptions::PreserveInfo,
+            },
+            std::move(action));
+        continue;
+    }
         const auto sushiCaption = [=](TextWithEntities caption) {
     if (!*sushiText) return TextWithEntities{};
-    if (*sushiQuote && !caption.text.isEmpty()) {
-        caption.entities.push_back(EntityInText(
-            EntityType::Blockquote, 0, caption.text.size()));
-    }
     return caption;
 };
 auto index = 0;
@@ -4361,7 +4368,7 @@ std::move(submitCallback),
 std::move(filterCallback),
 .sushiDirectMode = true,
 
-.sushiDirectOptionsCallback = [sushiText, sushiQuote](bool text, bool quote) { *sushiText = text; *sushiQuote = text && quote; },
+.sushiDirectOptionsCallback = [sushiText, sushiQuote](bool text, bool quote) { *sushiText = text; *sushiQuote = quote; },
 
 .moneyRestrictionError =
 ShareMessageMoneyRestrictionError(),

@@ -1,3 +1,4 @@
+class QLabel;
 /*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
@@ -51,6 +52,7 @@ class Thread;
 } // namespace Data
 
 namespace Ui {
+class Checkbox;
 class MultiSelect;
 class InputField;
 struct ScrollToRequest;
@@ -197,6 +199,10 @@ private:
 	int _sushiDirectSelectedMode = 0;
 bool _sushiDirectText = true;
 bool _sushiDirectQuote = true;
+  QPointer<Ui::Checkbox> _sushiDirectTextToggle;
+  QPointer<Ui::Checkbox> _sushiDirectQuoteToggle;
+    QPointer<QLabel> _sushiDirectTextLabel;
+    QPointer<QLabel> _sushiDirectQuoteLabel;
 	rpl::variable<QString> _copyLinkText;
 	rpl::variable<int> _starsToSend;
 
