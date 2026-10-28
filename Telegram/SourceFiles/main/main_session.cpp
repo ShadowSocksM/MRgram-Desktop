@@ -6,6 +6,13 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "main/main_session.h"
+#include "main/contact_changes/contact_changes_storage.h"
+#include <QDir>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QSaveFile>
 
 #include "apiwrap.h"
 #include "api/api_peer_colors.h"
@@ -21,6 +28,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "chat_helpers/stickers_dice_pack.h"
 #include "chat_helpers/stickers_gift_box_pack.h"
 #include "history/view/reactions/history_view_reactions_strip.h"
+#include "dialogs/dialogs_indexed_list.h"
 #include "history/history.h"
 #include "history/history_item.h"
 #include "inline_bots/bot_attach_web_view.h"
@@ -272,6 +280,109 @@ Session::Session(
 	) | rpl::on_next([=] {
 		appConfigRefreshed();
 	}, _lifetime);
+    initContactChanges();
+}
+
+bool Session::clearContactChangesHistory() {
+    if (!ContactChanges::SaveHistory(uniqueId(), {})) {
+        return false;
+    }
+    _contactHistory.clear();
+    return true;
+}
+void Session::initContactChanges() {
+    if (!_contactCacheLoaded) {
+        const auto accountId = uniqueId();
+        _contactSnapshots = ContactChanges::LoadSnapshots(accountId);
+        _contactHistory = ContactChanges::LoadHistory(accountId);
+        _contactCacheLoaded = true;
+    }
+    // Contact Changes: initialize missing snapshots after contacts load.
+    data().contactsLoaded().value(
+    ) | rpl::on_next([=](bool loaded) {
+        if (!loaded) {
+            return;
+        }
+        const auto accountId = uniqueId();
+        auto snapshots = _contactSnapshots;
+        QSet<quint64> knownIds; for (const auto &snapshot : snapshots) knownIds.insert(snapshot.userId);
+        auto modified = false;
+        for (const auto &row : data().contactsList()->all()) {
+            if (const auto history = row->history()) {
+                if (const auto user = history->peer->asUser()) {
+                    if (!user->isContact()) {
+                        continue;
+                    }
+                    const auto userId = peerToUser(user->id).bare;
+                    const auto exists = knownIds.contains(userId);
+                    if (!exists) {
+                        snapshots.push_back(ContactChanges::Snapshot{
+                            userId,
+                            user->name(),
+                            user->username(),
+                            uint64(user->userpicPhotoId())
+                        });
+                        knownIds.insert(userId);
+                        modified = true;
+                    }
+                }
+            }
+        }
+        if (modified) {
+            _contactSnapshots = snapshots;
+            ContactChanges::SaveSnapshots(accountId, _contactSnapshots);
+        }
+    }, _lifetime);
+    using Flag = Data::PeerUpdate::Flag;
+    changes().peerUpdates(
+        Flag::Name | Flag::Username | Flag::Photo
+    ) | rpl::on_next([=](const Data::PeerUpdate &update) {
+        const auto user = update.peer->asUser();
+        if (!user || !user->isContact()) {
+            return;
+        }
+        const auto accountId = uniqueId();
+        const auto userId = peerToUser(user->id).bare;
+        auto snapshots = _contactSnapshots;
+        const auto name = user->name();
+        const auto username = user->username();
+        const auto photoId = uint64(user->userpicPhotoId());
+        auto found = false;
+        auto history = _contactHistory;
+        const auto previousHistoryCount = history.size();
+        const auto record = [&](ContactChanges::ChangeType type, const QString &oldValue, const QString &newValue) {
+            ContactChanges::Entry entry;
+            entry.userId = userId;
+            entry.type = type;
+            entry.oldValue = oldValue;
+            entry.newValue = newValue;
+            entry.detectedAt = QDateTime::currentDateTimeUtc();
+            history.push_back(entry);
+        };
+        for (auto &snapshot : snapshots) {
+            if (snapshot.userId != userId) continue;
+            found = true;
+            if (snapshot.name != name) record(ContactChanges::ChangeType::Name, snapshot.name, name);
+            if (snapshot.username != username) record(ContactChanges::ChangeType::Username, snapshot.username, username);
+            if (snapshot.photoId != photoId) record(ContactChanges::ChangeType::Photo, QString::number(snapshot.photoId), QString::number(photoId));
+            snapshot.name = name;
+            snapshot.username = username;
+            snapshot.photoId = photoId;
+            break;
+        }
+        if (!found) {
+            snapshots.push_back(ContactChanges::Snapshot{ userId, name, username, photoId });
+        }
+        const auto hasNewEvents = (history.size() != previousHistoryCount);
+        if (!found || hasNewEvents) {
+            _contactSnapshots = snapshots;
+            _contactHistory = history;
+            ContactChanges::SaveSnapshots(accountId, _contactSnapshots);
+            if (hasNewEvents) {
+                ContactChanges::SaveHistory(accountId, _contactHistory);
+            }
+        }
+    }, _lifetime);
 }
 
 void Session::appConfigRefreshed() {

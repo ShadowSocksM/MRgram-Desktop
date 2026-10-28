@@ -1,3 +1,5 @@
+#include "main/contact_changes/contact_changes_section.h"
+#include "settings/sections/settings_contact_changes.h"
 /*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
@@ -11,6 +13,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #include "base/event_filter.h"
 #include "base/qt_signal_producer.h"
 #include "boxes/about_box.h"
+#include "main/contact_changes/contact_changes_storage.h"
 #include "core/update_channel.h"
 #include "boxes/peer_list_controllers.h"
 #include "boxes/premium_preview_box.h"
@@ -714,7 +717,24 @@ void MainMenu::setupMenu() {
 			{ &st::menuIconUserShow }
 		)->setClickedCallback([=] {
 			controller->show(PrepareContactsBox(controller));
-		});
+	});
+	Settings::AddButtonWithLabel(
+        _menu,
+        rpl::single(u"Contact Changes"_q),
+        rpl::single([=] {
+            const auto history = Main::ContactChanges::LoadHistory(
+                controller->session().uniqueId());
+            const auto count = std::count_if(
+                history.begin(), history.end(),
+                [](const auto &entry) { return entry.isNew; });
+            return count ? QString::number(count) : QString();
+        }()),
+        st::mainMenuButton,
+		{ &st::menuIconUserShow }
+	)->setClickedCallback([=] {
+		const auto history = Main::ContactChanges::LoadHistory(controller->session().uniqueId());
+        controller->showSection(std::make_shared<Main::ContactChanges::SectionMemento>());
+	});
 		addAction(
 			tr::lng_menu_calls(),
 			{ &st::menuIconPhone }

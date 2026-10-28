@@ -106,7 +106,7 @@ endif()
 
 target_precompile_headers(Telegram PRIVATE $<$<COMPILE_LANGUAGE:CXX,OBJCXX>:${src_loc}/stdafx.h>)
 nice_target_sources(Telegram ${src_loc}
-PRIVATE
+    PRIVATE
     ${style_files}
 
     api/api_attached_stickers.cpp
@@ -1840,6 +1840,10 @@ PRIVATE
     settings/sections/settings_chat.cpp
     settings/sections/settings_chat.h
     settings/sections/settings_blocked_peers.cpp
+    main/contact_changes/contact_changes_section.cpp
+    main/contact_changes/contact_changes_section.h
+    settings/sections/settings_contact_changes.cpp
+    settings/sections/settings_contact_changes.h
     settings/sections/settings_blocked_peers.h
     settings/sections/settings_business.cpp
     settings/sections/settings_business.h
@@ -2200,6 +2204,13 @@ PRIVATE
 
 file(GLOB_RECURSE yuki_src CONFIGURE_DEPENDS "${src_loc}/yukigram/*.cpp" "${src_loc}/yukigram/*.h")
 target_sources(Telegram PRIVATE ${yuki_src})
+# Contact Changes
+target_sources(Telegram PRIVATE
+    ${src_loc}/main/contact_changes/contact_changes.h
+    ${src_loc}/main/contact_changes/contact_changes_storage.h
+    ${src_loc}/main/contact_changes/contact_changes_storage.cpp
+)
+
 
 if (NOT DEVEL)
     set(YUKIGRAM_APP_ID "io.github.shadowsocksm.mrgram")

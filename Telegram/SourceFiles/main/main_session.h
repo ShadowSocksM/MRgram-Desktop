@@ -84,6 +84,7 @@ namespace Ui {
 struct ColorIndicesCompressed;
 } // namespace Ui
 
+#include "main/contact_changes/contact_changes.h"
 namespace Main {
 
 class Account;
@@ -106,6 +107,9 @@ struct FreezeInfo {
 };
 
 class Session final : public base::has_weak_ptr {
+public:
+    bool clearContactChangesHistory();
+    void initContactChanges();
 public:
 	Session(
 		not_null<Account*> account,
@@ -366,6 +370,10 @@ private:
 
 	QByteArray _tmpPassword;
 	TimeId _tmpPasswordValidUntil = 0;
+
+	QVector<ContactChanges::Snapshot> _contactSnapshots;
+	ContactChanges::History _contactHistory;
+	bool _contactCacheLoaded = false;
 
 	rpl::lifetime _lifetime;
 
