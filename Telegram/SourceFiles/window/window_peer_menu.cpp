@@ -6,6 +6,7 @@ For license and copyright information please follow this link:
 https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 */
 #include "window/window_peer_menu.h"
+#include <QtCore/QSettings>
 
 #include "base/call_delayed.h"
 #include "menu/menu_check_item.h"
@@ -4193,8 +4194,10 @@ const auto shareBox =
 std::make_shared<base::weak_qptr<Ui::BoxContent>>();
 const auto sending = std::make_shared<bool>(false);
 
-const auto sushiText = std::make_shared<bool>(true);
-const auto sushiQuote = std::make_shared<bool>(true);
+// SUSHI_DIRECT_PERSIST_SEND_V1
+const QSettings sushiSettings(QSettings::IniFormat, QSettings::UserScope, QStringLiteral("SushiGram"), QStringLiteral("DirectForward"));
+const auto sushiText = std::make_shared<bool>(sushiSettings.value(QStringLiteral("Text"), true).toBool());
+const auto sushiQuote = std::make_shared<bool>(sushiSettings.value(QStringLiteral("Quote"), true).toBool());
 
 auto countMessagesCallback =
 [=](const TextWithTags &) {

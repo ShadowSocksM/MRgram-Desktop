@@ -1,4 +1,5 @@
 #include <QLabel>
+#include <QtCore/QSettings>
 /*
 This file is part of Telegram Desktop,
 the official desktop application for the Telegram messaging service.
@@ -365,7 +366,11 @@ void ShareBox::prepare() {
 
   // SUSHI_DIRECT_TOGGLES_BEGIN
   if (_descriptor.sushiDirectMode) {
-      const auto makeToggle = [=](const QString &label, bool checked) {
+      // SUSHI_TOGGLE_PERSIST_V1
+    QSettings sushiSettings(QSettings::IniFormat, QSettings::UserScope, QStringLiteral("SushiGram"), QStringLiteral("DirectForward"));
+    _sushiDirectText = sushiSettings.value(QStringLiteral("Text"), true).toBool();
+    _sushiDirectQuote = sushiSettings.value(QStringLiteral("Quote"), true).toBool();
+    const auto makeToggle = [=](const QString &label, bool checked) {
           const auto toggle = Ui::CreateChild<Ui::Checkbox>(
               this,
               label,
@@ -395,6 +400,7 @@ void ShareBox::prepare() {
       _sushiDirectTextToggle->checkedChanges()
       | rpl::on_next([=](bool checked) {
           _sushiDirectText = checked;
+        QSettings(QSettings::IniFormat, QSettings::UserScope, QStringLiteral("SushiGram"), QStringLiteral("DirectForward")).setValue(QStringLiteral("Text"), checked);
 
           syncToggles();
       }, lifetime());
@@ -402,6 +408,7 @@ void ShareBox::prepare() {
       _sushiDirectQuoteToggle->checkedChanges()
       | rpl::on_next([=](bool checked) {
           _sushiDirectQuote = checked;
+        QSettings(QSettings::IniFormat, QSettings::UserScope, QStringLiteral("SushiGram"), QStringLiteral("DirectForward")).setValue(QStringLiteral("Quote"), checked);
           syncToggles();
       }, lifetime());
       // SUSHI_DIRECT_TOGGLE_HANDLERS_END
