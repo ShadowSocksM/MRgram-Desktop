@@ -8,6 +8,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 #pragma once
 
 #include "base/timer.h"
+#include <set>
 #include "base/object_ptr.h"
 #include "core/core_settings_proxy.h"
 #include "mtproto/connection_abstract.h"
@@ -86,6 +87,7 @@ public:
 	void restoreItem(int id);
 	void shareItem(int id, bool qr);
 	void shareItems();
+	void copyItems(const std::set<int> &ids);
 	void applyItem(int id);
 	void openBrowser(int id);
 	object_ptr<Ui::BoxContent> editItemBox(int id);

@@ -63,6 +63,7 @@ https://github.com/telegramdesktop/tdesktop/blob/master/LEGAL
 
 #include <QtGui/QGuiApplication>
 #include <QtGui/QClipboard>
+#include <set>
 #include <QtWidgets/QTextEdit>
 
 namespace {
@@ -602,6 +603,8 @@ public:
 	rpl::producer<> restoreClicks() const;
 	rpl::producer<> editClicks() const;
 	rpl::producer<> shareClicks() const;
+	rpl::producer<> copySelectionClicks() const;
+	void setCopySelected(bool selected);
 	rpl::producer<> showQrClicks() const;
 	rpl::producer<> openBrowserClicks() const;
 
@@ -625,6 +628,8 @@ private:
 	rpl::event_stream<> _restoreClicks;
 	rpl::event_stream<> _editClicks;
 	rpl::event_stream<> _shareClicks;
+	rpl::event_stream<> _copySelectionClicks;
+	bool _copySelected = false;
 	rpl::event_stream<> _showQrClicks;
 	rpl::event_stream<> _openBrowserClicks;
 	base::unique_qptr<Ui::DropdownMenu> _menu;
@@ -662,6 +667,10 @@ private:
 	void addNewProxy();
 	void applyView(View &&view);
 	void setupButtons(int id, not_null<ProxyRow*> button);
+	void toggleCopySelection(int id);
+	void selectAllForCopy();
+	void clearCopySelection();
+	void copySelected();
 	int rowHeight() const;
 	void refreshProxyForCalls();
 	void refreshProxyRotation();
@@ -681,6 +690,7 @@ private:
 	int _currentProxySupportsCallsId = 0;
 
 	base::flat_map<int, base::unique_qptr<ProxyRow>> _rows;
+	std::set<int> _copySelection;
 
 	QPointer<Ui::RpWidget> _addProxyButton;
 	QPointer<Ui::RpWidget> _shareListButton;
@@ -766,6 +776,15 @@ rpl::producer<> ProxyRow::editClicks() const {
 
 rpl::producer<> ProxyRow::shareClicks() const {
 	return _shareClicks.events();
+}
+
+rpl::producer<> ProxyRow::copySelectionClicks() const {
+	return _copySelectionClicks.events();
+}
+
+void ProxyRow::setCopySelected(bool selected) {
+	_copySelected = selected;
+	update();
 }
 
 rpl::producer<> ProxyRow::showQrClicks() const {
@@ -1021,6 +1040,11 @@ void ProxyRow::showMenu() {
 			const style::icon *icon) {
 		return _menu->addAction(text, std::move(callback), icon);
 	};
+	if (_view.supportsShare && !_view.deleted) {
+		addAction(_copySelected ? u"[x] Selected for Copy"_q : u"[ ] Select for Copy"_q, [=] {
+			_copySelectionClicks.fire({});
+		}, &st::menuIconCopy);
+	}
 	addAction(tr::lng_proxy_menu_edit(tr::now), [=] {
 		_editClicks.fire({});
 	}, &st::menuIconEdit);
@@ -1093,9 +1117,15 @@ ProxiesBox::ProxiesBox(
 }
 
 void ProxiesBox::keyPressEvent(QKeyEvent *e) {
-	if (e->key() == Qt::Key_Copy
+	if (e->key() == Qt::Key_A && e->modifiers() == Qt::ControlModifier) {
+		selectAllForCopy();
+	} else if (e->key() == Qt::Key_Copy
 		|| (e->key() == Qt::Key_C && e->modifiers() == Qt::ControlModifier)) {
-		_controller->shareItems();
+		if (_copySelection.empty()) {
+			_controller->shareItems();
+		} else {
+			copySelected();
+		}
 	} else if (e->key() == Qt::Key_Paste
 		|| (e->key() == Qt::Key_V && e->modifiers() == Qt::ControlModifier)) {
 		AddProxyFromClipboard(_controller, uiShow());
@@ -1333,6 +1363,20 @@ void ProxiesBox::setupContent() {
 		shareList->setClickedCallback([=] {
 			_controller->shareItems();
 		});
+		const auto copySelectedButton = Settings::AddButtonWithIcon(
+			wrap->entity(),
+			rpl::single(u"Copy Selected Proxies"_q),
+			st::settingsButton,
+			{ &st::menuIconCopy });
+		copySelectedButton->setClickedCallback([=] { copySelected(); });
+		const auto selectAllButton = Settings::AddButtonWithIcon(
+			wrap->entity(), rpl::single(u"Select All for Copy"_q),
+			st::settingsButton, { &st::menuIconCopy });
+		selectAllButton->setClickedCallback([=] { selectAllForCopy(); });
+		const auto clearButton = Settings::AddButtonWithIcon(
+			wrap->entity(), rpl::single(u"Clear Copy Selection"_q),
+			st::settingsButton, { &st::menuIconDelete });
+		clearButton->setClickedCallback([=] { clearCopySelection(); });
 		wrap->toggleOn(_controller->listShareableChanges());
 		wrap->finishAnimating();
 	}
@@ -1409,14 +1453,20 @@ void ProxiesBox::applyView(View &&view) {
 				wrap,
 				std::move(view))));
 		setupButtons(id, i->second.get());
+		i->second->setCopySelected(_copySelection.count(id) != 0);
 		if (_noRows) {
 			_noRows.reset();
 		}
 		wrap->resizeToWidth(width());
 	} else if (view.host.isEmpty()) {
+		_copySelection.erase(id);
 		_rows.erase(i);
 	} else {
+		if (view.deleted || !view.supportsShare) {
+			_copySelection.erase(id);
+		}
 		i->second->updateFields(std::move(view));
+		i->second->setCopySelected(_copySelection.count(id) != 0);
 	}
 	refreshProxyRotation();
 }
@@ -1443,7 +1493,40 @@ void ProxiesBox::createNoRowsLabel() {
 	}, label->lifetime());
 }
 
+void ProxiesBox::toggleCopySelection(int id) {
+	if (_copySelection.erase(id) == 0) {
+		_copySelection.insert(id);
+	}
+	const auto i = _rows.find(id);
+	if (i != _rows.end()) {
+		i->second->setCopySelected(_copySelection.count(id) != 0);
+	}
+}
+
+void ProxiesBox::selectAllForCopy() {
+	_copySelection.clear();
+	for (const auto &[id, row] : _rows) {
+		_copySelection.insert(id);
+		row->setCopySelected(true);
+	}
+}
+
+void ProxiesBox::clearCopySelection() {
+	_copySelection.clear();
+	for (const auto &[id, row] : _rows) {
+		row->setCopySelected(false);
+	}
+}
+
+void ProxiesBox::copySelected() {
+	_controller->copyItems(_copySelection);
+}
+
 void ProxiesBox::setupButtons(int id, not_null<ProxyRow*> button) {
+	button->copySelectionClicks(
+	) | rpl::on_next([=] {
+		toggleCopySelection(id);
+	}, button->lifetime());
 	button->deleteClicks(
 	) | rpl::on_next([=] {
 		_controller->deleteItem(id);
@@ -2269,13 +2352,32 @@ void ProxiesBoxController::shareItems() {
 		if (!item.deleted && ProxyDataIsShareable(item.data)) {
 			const auto link = ProxyDataToPublicLink(_account, item.data);
 			if (!link.isEmpty()) {
-				result += (result.isEmpty() ? QString() : u"\n\n"_q) + link;
+				result += (result.isEmpty() ? QString() : u"\n"_q) + link;
 			}
 		}
 	}
 	if (result.isEmpty()) {
 		return;
 	}
+	QGuiApplication::clipboard()->setText(result);
+	_show->showToast({
+		.text = { tr::lng_proxy_edit_share_list_toast(tr::now) },
+		.iconLottie = u"toast/copy"_q,
+		.iconLottieSize = st::toastLottieIconSize,
+	});
+}
+
+void ProxiesBoxController::copyItems(const std::set<int> &ids) {
+	auto result = QString();
+	for (const auto &item : _list) {
+		if (ids.count(item.id) && !item.deleted && ProxyDataIsShareable(item.data)) {
+			const auto link = ProxyDataToLocalLink(item.data);
+			if (!link.isEmpty()) {
+				result += (result.isEmpty() ? QString() : u"\n"_q) + link;
+			}
+		}
+	}
+	if (result.isEmpty()) return;
 	QGuiApplication::clipboard()->setText(result);
 	_show->showToast({
 		.text = { tr::lng_proxy_edit_share_list_toast(tr::now) },
