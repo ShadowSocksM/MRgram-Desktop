@@ -4010,18 +4010,10 @@ base::weak_qptr<Ui::BoxContent> ShowForwardProMessagesBox(
                                                                                         ConvertEntitiesToTextTags(
                                                                                                 original.entities)
                                                                         };
-
-                                                                        // Apply Forward Pro edited caption/text once.
-                                                                        if (!firstCaptionApplied
-                                                                                && !original.text.isEmpty()) {
-                                                                                text = edited;
-                                                                                firstCaptionApplied = true;
-                                                                        }
-
-                                                                        if (!firstCaptionApplied
-                                                                                && !item->media()) {
-                                                                                text = edited;
-                                                                                firstCaptionApplied = true;
+                                                                        // Apply edited text only to album media.
+                                                                        if (!firstCaptionApplied && item->media() && (item->media()->photo() || item->media()->document())) {
+                                                                            text = edited;
+                                                                            firstCaptionApplied = true;
                                                                         }
 
                                                                         if (const auto media = item->media()) {
